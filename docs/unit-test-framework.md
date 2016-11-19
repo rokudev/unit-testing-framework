@@ -6,12 +6,12 @@ This document describes the architecture and usage of the Roku unit test framewo
 
 ### System diagram
 
-![System Architecture Diagram](images/system-architecture-diagram.png)
+![System architecture diagram](../images/system-architecture-diagram.png)
 **Figure 1:** System architecture diagram
 
 ### Sequence diagram
 
-![Flow diagram](images/flow-diagram.png)
+![Flow diagram](../images/flow-diagram.png)
 **Figure 2:** Flow diagram
 
 ## Framework Components
@@ -161,20 +161,20 @@ Runner.logger.printStatistic = customPrintFunction
 
 With basic verbosity level the framework outputs total number of tests, number of passed tests, number of failed tests, number of tests that caused a crash and time spent for running the tests:
 
-![Basic verbosity level](images/Basic-verbosity-level.png)
+![Basic verbosity level](../images/Basic-verbosity-level.png)
 
 **Figure 3:** Basic verbosity level
 
 Normal level includes the list of all tests with their names and results:
 
-![Normal verbosity level](images/normal-verbosity-level.png)
+![Normal verbosity level](../images/normal-verbosity-level.png)
 
 **Figure 4:** Normal verbosity level
 
 
 Detailed level shows verbose statistics for every test suite and any error messages for failed tests:
 
-![Detailed verbosity level](images/detailed-verbosity-level.png)
+![Detailed verbosity level](../images/detailed-verbosity-level.png)
 
 **Figure 5:** Detailed verbosity level
 
