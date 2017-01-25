@@ -12,7 +12,7 @@ The Test Runner collects all test suites with their test cases under the given d
 
 Every test suite must extend BaseTestSuite and must contain at least one test case.
 
-* For the full instructions, please refer to the [Instructions](https://github.com/rokudev/unit-testing-framework/blob/master/docs/Unit%20Test%20Framework%20for%20Roku%20Channels.docx)
+* For the full instructions, please refer to the [Instructions](https://github.com/rokudev/unit-testing-framework/blob/master/docs/unit-test-framework.md)
 * Please send pull requests and feedback to us in this repo. 
 
 _Thanks for building on the Roku Platform!_
