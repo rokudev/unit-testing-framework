@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Node that implements list of video items.
+	 It also handles item selection and animation.
+-->
+<component name="VerticalItem" extends="MaskGroup" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+	<!-- Interface element defines a set of fields to be exposed by a component -->
+	<interface>
+	  <!-- preffered width of markup list video item -->
+	  <field id="width" 		type="float" 	onChange="OnWidthChanged"/> 
+	  <!-- preffered height of markup list video item -->
+	  <field id="height" 		type="float" 	onChange="OnHeightChanged"/> 
+	  <!-- content node of current selected video -->
+	  <field id="itemContent" 	type="node" 	onchange="OnItemContentChanged"/>
+	  <!-- fractional value used for animation when item becomes focused or unfocused -->
+	  <field id="focusPercent" 	type="float" 	onChange="OnFocusPercentChanged"/> 
+	  <!-- indicates if list is in focus and triggers proper function on focus change -->
+	  <field id="listHasFocus" 	type="bool" 	onChange="OnListFocusChanged"/>
+	</interface>
+
+	<!-- Script element allows the definition of functions to initialize the component, 
+    or include referrence to other file with common functionality -->
+	<script type="text/brightscript" uri="pkg:/components/Nodes/ItemComponent/VerticalItem.brs"/> 
+	
+	<!-- Children element contains default and custom BrightScript Components -->
+	<children>
+		<Poster
+			id="cover"/>
+			
+		<Rectangle
+			id="background"
+			color="0x000000FF"/>	
+
+		<Label
+			id="title"
+			horizAlign="left"
+			vertAlign="center"
+			color="0xFFFFFFFF"
+			text="title"
+			wrap="true"
+			font="font:MediumBoldSystemFont"/>
+
+		<Label
+			id="description"
+			text="description"
+			horizAlign="left"
+			color="0xFFFFFFFF"
+			wrap="true"
+			lineSpacing="-0.5"
+			font="font:SmallestSystemFont"/>	
+			
+	</children>
+</component>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********--> 
+
+<!-- main node which handles home screen children -->
+<component name="SlidingTemplate" extends="Group" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+    <!-- Interface element defines a set of fields to be exposed by a component -->
+    <interface>
+        <!-- Specifies custom fields and handlers -->
+        <field id="Content" type="node" onChange="OnChangeContent"/>
+    </interface>
+    
+    <!-- Script element allows the definition of functions to initialize the component, 
+    or include referrence to other file with common functionality -->
+    <script type="text/brightscript" uri="pkg:/components/SlidingTemplate/SlidingTemplate.brs"/>
+    <script type="text/brightscript" uri="pkg:/source/Utils.brs"/>
+    
+    <!-- Children element contains default and custom BrightScript Components -->
+    <children>
+    	<Overhang
+    		id="Overhang"/>
+    	
+    	<PanelSet
+    		id="PanelSet"
+    		translation="[0, 138]"/>
+    		
+    	<Hud
+    		id="Hud"
+    		height="227"/>
+    </children> 
+</component>

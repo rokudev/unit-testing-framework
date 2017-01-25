@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Node that represents detailed information about focused item --> 
+<component name="DetailsView" extends="Group" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+<!-- Interface element defines a set of fields to be exposed by a component -->
+<interface>
+	<field id="posterUrl" 	type="string" alias="poster.uri"/>
+	<field id="title" 		type="string" alias="title.text"/>
+	<field id="year" 		type="string" alias="year.text"/>
+	<field id="rating" 		type="string" alias="rating.text"/>
+	<field id="duration" 	type="string" alias="duration.text"/>
+	<field id="description" type="string" alias="description.text"/>
+	<field id="horizontalStyle" type="boolean" onChange="changeStyle" value="false"/>
+	<field id="content" type="node" onChange="onContentSet"/>
+	<field id="width" type="integer" onChange="onWidthChange"/>
+	<field id="posterWidth" type="float" onChange="onPosterWidthChange"/>
+</interface>
+
+<!-- Script element allows the definition of functions to initialize the component, 
+or include referrence to other file with common functionality -->
+<script type="text/brightscript" uri="pkg:/components/Nodes/DetailsView.brs"/>
+<script type="text/brightscript" uri="pkg:/source/Utils.brs"/>
+
+<!-- Children element contains default and custom BrightScript Components -->
+<children>
+	<LayoutGroup
+		id="detailsGroup"
+		layoutDirection="vert"
+		vertAlignment="top"
+		itemSpacings="[13]">
+		<Poster
+			id="poster"
+			uri="pkg:/images/blur.png"
+			failedBitmapUri="pkg:/images/blur.png"
+			width="200"
+			height="267" />
+		<LayoutGroup
+			layoutDirection="vert"
+			vertAlignment="top"
+			itemSpacings="[7,13]">
+			<Label
+				id="title"
+				width="333"/>
+			<LayoutGroup
+				id="titleGroup"
+				layoutDirection="horiz"
+				vertAlignment="center"
+				itemSpacings="[13]">
+				<Label
+					id="year"
+					text="None"
+					font="font:SmallestSystemFont"/>
+				<Poster
+					id="delimiter"
+					height="17"
+					uri="pkg:/images/divider_vertical.9.png"/>
+				<Label
+					id="rating"
+					text="None"
+					font="font:SmallestSystemFont"/>
+				<Poster
+					id="delimiter"
+					height="17"
+					uri="pkg:/images/divider_vertical.9.png"/>
+				<Label
+					id="duration"
+					text="None"
+					font="font:SmallestSystemFont"/>
+			</LayoutGroup>
+			<Rectangle>
+				<Rectangle id="OtherDetailsBlock" visible="false">
+					<LayoutGroup
+						layoutDirection="vert"
+						vertAlignment="top">
+						<LayoutGroup layoutDirection="horiz" itemSpacings="[7]">
+							<Label
+								font="font:SmallestBoldSystemFont"
+								text="Stars:"/>
+							<Label
+								width="433"
+								id="Stars"
+								font="font:SmallestSystemFont"/>
+						</LayoutGroup>
+						<LayoutGroup layoutDirection="horiz" itemSpacings="[7]">
+							<Label
+								font="font:SmallestBoldSystemFont"
+								text="Director:"/>
+							<Label
+								width="423"
+								font="font:SmallestSystemFont"
+								id="Director"/>
+						</LayoutGroup>
+					</LayoutGroup>
+				</Rectangle>
+				<Label
+					id="description"
+					width="333"
+					wrap="true"
+					maxLines="7"
+					lineSpacing="2"
+					font="font:SmallestSystemFont"
+					 />
+			</Rectangle>
+		</LayoutGroup>
+	</LayoutGroup>
+</children>
+</component>
