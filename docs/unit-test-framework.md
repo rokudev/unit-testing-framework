@@ -125,19 +125,29 @@ To run your unit tests, follow these instruction:
 
 Create new .brs files for each test suite. The default prefix for test suite files is “Test\__”. You can use any prefix you want just don’t forget to specify it in the next step. In this new file define a function TestSuite__Main().  This function will return the test suite object. Create a new test suite object from BaseTestSuite:
 
+```
 _this = BaseTestSuite()_
+```
 
 then set its name
 
+```
 _this.Name = "MainTestSuite"_
+```
 
 Then add test cases:
 
-this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount).
+```
+this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount)
+```
+
 TestCase\__Main_CheckDataCount is a test function.
+
+```
 Function TestCase__Main_CheckDataCount() as String
-return m.assertArrayCount(m.mainData, 15)
+       return m.assertArrayCount(m.mainData, 15)
 End Function
+```
 
 3)	Run all your tests.
 
