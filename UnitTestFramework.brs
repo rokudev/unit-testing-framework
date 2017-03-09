@@ -83,6 +83,7 @@ function BaseTestSuite()
     this.eqValues                       = BTS__EqValues
     this.eqAssocArrays                  = BTS__EqAssocArray
     this.eqArrays                       = BTS__EqArray
+    this.eqTypes                        = BTS__EqTypes
 
     return this
 End Function
@@ -581,7 +582,7 @@ End Function
 '----------------------------------------------------------------
 
 '----------------------------------------------------------------
-' Compare two arbtrary values to eachother.
+' Compare two arbitrary values to each other.
 ' 
 ' @param Value1 (dynamic) A first item to compare.
 ' @param Value2 (dynamic) A second item to compare.
@@ -605,7 +606,7 @@ Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
         Value1 = box(Cdbl(Value1))
     end if
 
-    if type(Value1) <> type(Value2)
+    if m.eqTypes(Value1, Value2) = false
         return False
     else
         valtype = type(Value1)
@@ -655,7 +656,7 @@ Function BTS__EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
 End Function 
 
 '----------------------------------------------------------------
-' Compare to roArray objects for equality.
+' Compare two roArray objects for equality.
 ' 
 ' @param Value1 (object) A first array.
 ' @param Value2 (object) A second array.
@@ -678,7 +679,80 @@ Function BTS__EqArray(Value1 as Object, Value2 as Object) as Boolean
         end for
         return True
     end if
-End Function'*****************************************************************
+End Function
+
+'----------------------------------------------------------------
+' Compare two objects for logical type equality.  For example, 
+' 'roInt', 'roInteger', and 'Integer' types are equivalent.
+' 
+' @param Value1 (object) A first object.
+' @param Value2 (object) A second object.
+' 
+' @return True if object types are logically equal or False otherwise
+'----------------------------------------------------------------
+Function BTS__EqTypes(Value1 as Object, Value2 as Object) as Boolean
+    if FW_IsValid(Value1)
+        if FW_IsArray(Value1)
+            return FW_IsArray(Value2)
+        end if
+
+        if FW_IsAssociativeArray(Value1)
+            return FW_IsArray(Value2)
+        end if
+
+        if FW_IsBoolean(Value1)
+            return FW_IsBoolean(Value2)
+        end if
+
+        if FW_IsDateTime(Value1)
+            return FW_IsDateTime(Value2)
+        end if
+
+        if FW_IsDouble(Value1)
+            return FW_IsDouble(Value2)
+        end if
+
+        if FW_IsFloat(Value1)
+            return FW_IsFloat(Value2)
+        end if
+
+        if FW_IsFunction(Value1)
+            return FW_IsFunction(Value2)
+        end if
+
+        if FW_IsInteger(Value1)
+            return FW_IsInteger(Value2)
+        end if
+
+        if FW_IsList(Value1)
+            return FW_IsList(Value2)
+        end if
+
+        if FW_IsLongInteger(Value1)
+            return FW_IsLongInteger(Value2)
+        end if
+
+        if FW_IsNumber(Value1)
+            return FW_IsNumber(Value2)
+        end if
+
+        if FW_IsSGNode(Value1)
+            return FW_IsSGNode(Value2)
+        end if
+
+        if FW_IsString(Value1)
+            return FW_IsString(Value2)
+        end if
+
+        if FW_IsXmlElement(Value1)
+            return FW_IsXmlElement(Value2)
+        end if
+    else
+        return not FW_IsValid(Value2)
+    end if
+End Function
+
+'*****************************************************************
 '* Copyright Roku 2011-2017
 '* All Rights Reserved
 '*****************************************************************
