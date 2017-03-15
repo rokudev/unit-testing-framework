@@ -697,7 +697,7 @@ Function BTS__EqTypes(Value1 as Object, Value2 as Object) as Boolean
         end if
 
         if FW_IsAssociativeArray(Value1)
-            return FW_IsArray(Value2)
+            return FW_IsAssociativeArray(Value2)
         end if
 
         if FW_IsBoolean(Value1)
