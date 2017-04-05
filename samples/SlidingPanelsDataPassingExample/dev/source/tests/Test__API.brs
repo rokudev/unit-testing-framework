@@ -149,7 +149,7 @@ End Function
 'AssertContentNodeFlowLogic checks is input expression a Content Node and does it
 'have mandatory field for panel sliding logic as nextPanelName
 Function BTS__AssertContentNodeFlowLogic(expr as Dynamic, msg = "Expression doesn't have flow logic") as String
-    if FW_IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" then
+    if TF_Utils__IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" then
         if expr.nextPanelName <> invalid or expr.nextPanelName <> "" then
             return ""
         end if
@@ -160,7 +160,7 @@ End Function
 
 'AssertContentNode checks is input expression a ContentNode
 Function BTS__AssertContentNode(expr as Dynamic, msg = "Expression isn't valid content npode") as String
-    if FW_IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" then
+    if TF_Utils__IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" then
         msg = ""
     end if
     return msg
@@ -169,7 +169,7 @@ End Function
 
 'this function checks input expression on is it Content Node and does it have children of ContentNode (by AssertContentNodeFlowLogic function)   
 Function BTS__AssertContentListNode(expr as Dynamic, msg = "Expression isn't list of content nodes") as String
-    if FW_IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" and expr.getChildCount() > 0 then
+    if TF_Utils__IsValid(expr) and type(expr) = "roSGNode" and expr.subtype() = "ContentNode" and expr.getChildCount() > 0 then
         for i = 0 to expr.getChildCount() - 1
             child = expr.getChild(i)
             msg = m.AssertContentNodeFlowLogic(child)

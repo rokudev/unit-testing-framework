@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Panel for search, that contains keyboard-->
+<component name="SearchPanel" extends="Panel" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+<!-- Script element allows the definition of functions to initialize the component, 
+or include referrence to other file with common functionality -->
+<script type="text/brightscript" uri="pkg:/components/Panels/Search/SearchPanel.brs"/>
+<script type="text/brightscript" uri="pkg:/source/Utils.brs"/>
+
+<!-- Children element contains default and custom BrightScript Components -->
+<children>
+    <MiniKeyboard
+        id="keyboard"/>
+</children>
+
+</component>

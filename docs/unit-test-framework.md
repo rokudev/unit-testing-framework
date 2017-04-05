@@ -114,6 +114,8 @@ The Logger object is used to output test results. It takes information from a Te
 
 ## Usage
 
+###General
+
 To use the unit test framework in your channel, place the framework files in the directory pkg:/source /testFramework/.
 
 To run your unit tests, follow these instruction:
@@ -125,29 +127,19 @@ To run your unit tests, follow these instruction:
 
 Create new .brs files for each test suite. The default prefix for test suite files is “Test\__”. You can use any prefix you want just don’t forget to specify it in the next step. In this new file define a function TestSuite__Main().  This function will return the test suite object. Create a new test suite object from BaseTestSuite:
 
-```
 _this = BaseTestSuite()_
-```
 
 then set its name
 
-```
 _this.Name = "MainTestSuite"_
-```
 
 Then add test cases:
 
-```
-this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount)
-```
-
+this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount).
 TestCase\__Main_CheckDataCount is a test function.
-
-```
 Function TestCase__Main_CheckDataCount() as String
-       return m.assertArrayCount(m.mainData, 15)
+return m.assertArrayCount(m.mainData, 15)
 End Function
-```
 
 3)	Run all your tests.
 
@@ -160,10 +152,11 @@ http://{Roku_box_IP_address}:8060/launch/dev?RunTests=true
 * View the test results by opening a telnet console on the device on port 8085:
 telnet {Roku box IP address} 8085.
 
-To set verbosity level call Runner.logger.SetVerbosity(level). There are three verbosity levels in this framework:
+To set verbosity level call Runner.logger.SetVerbosity(level). There are four verbosity levels in this framework:
 * “0” – basic level
 * “1” – normal level
-* “2” – detailed level.
+* “2” – detailed only for failed tests, normal for others
+* “3” – detailed level.
 
 You can overwrite printStatistic if you like, such as
 
@@ -187,7 +180,40 @@ Detailed level shows verbose statistics for every test suite and any error messa
 ![Detailed verbosity level](../images/detailed-verbosity-level.png)
 
 **Figure 5:** Detailed verbosity level
-
+
+###RSG
+
+If you want to test RSG nodes you should:
+
+1)	Create new folder "tests" under components directory of your project: "pkg:/components/tests".
+ * This will be the root folder for RSG unit tests. In this folder you can also create subfolders for every test suite collection.
+
+2)	Create test suite files in "tests" folder or subfolders.
+
+Create new .xml file for each node you want to test. This .xml file should be a node and it must extend the node you want to test. The default prefix for test nodes is "Test\__". You can use any prefix you want just don’t forget to specify it. File name must match node name. For each node you may create as many test suites as you wish. Details on how to create test suites you can find in the previous section. The only difference is that every test suite should have following prefix: TEST\_FILE\_PREFIX + NODE\_NAME + "\__" + TEST\_SUITE\_NAME, where default TEST\_FILE\_PREFIX is "Test\__", NODE\_NAME may be "MyNode" and TEST\_SUITE\_NAME can be "TestSuite1". So the name of a test suite file may look like this: "Test\__MyNode\__TestSuite1". In every test node (.xml file) you should:
+* Add interface function for running tests. This function will be used by framework and must not be addressed in any other way:
+
+		<interface>
+			<function name="TestFramework__RunNodeTests"/>
+		</interface>
+
+* Import unit test framework:
+
+		<script type="text/brightscript" uri="pkg:/source/testFramework/UnitTestFramework.brs"/>
+
+* Import all the test suites, associated with this node.
+		
+		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite1.brs"/>
+		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/>
+
+Note that if you want to test RSG nodes, you must run tests only after screen is shown. If you had previously set up test runner, move it below screen showing statement.
+    
+    m.screen.show()
+    if runUnitTests
+	    runner = TestRunner()
+	    runner.run()
+    end if
+
 ##	Example
 
 
@@ -329,3 +355,25 @@ Function TestCase__Main_TestAddPrefixFunction__Passed() as string
 
     return m.assertNotInvalid(result, "Input data is invalid. All values should be strings.")
 End Function```
+
+
+###Test node example
+
+Here is shown what a test node for "MyNode" may look like:
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!--********** Copyright 2017 Roku Corp.  All Rights Reserved. **********-->
+	
+	<component name="Test__MyNode" extends="MyNode" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+	
+		<interface>
+			<function name="TestFramework__RunNodeTests"/>
+		</interface>
+	    
+		<script type="text/brightscript" uri="pkg:/source/testFramework/UnitTestFramework.brs"/>
+		
+		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite1.brs"/>
+		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/> 
+	
+	</component>
+

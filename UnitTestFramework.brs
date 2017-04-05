@@ -2,8 +2,8 @@
 '* Roku Unit Testing Framework (BETA)
 '* A beta tool for automating test suites for Roku channels.
 '*
-'* Build Version: 1.1.0
-'* Build Date: 1/20/2017
+'* Build Version: 1.2.1
+'* Build Date: 04/03/2017
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
@@ -42,6 +42,7 @@
 '     BTS__EqValues
 '     BTS__EqAssocArray
 '     BTS__EqArray
+'     BTS__BaseComparator
      
 '----------------------------------------------------------------
 ' Main function. Create BaseTestSuite object.
@@ -83,6 +84,7 @@ function BaseTestSuite()
     this.eqValues                       = BTS__EqValues
     this.eqAssocArrays                  = BTS__EqAssocArray
     this.eqArrays                       = BTS__EqArray
+    this.baseComparator                 = BTS__BaseComparator 
 
     return this
 End Function
@@ -138,7 +140,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as string
-    if not FW_IsBoolean(expr) or expr
+    if not TF_Utils__IsBoolean(expr) or expr
         return m.fail(msg)
     end if
     return ""
@@ -154,7 +156,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as string
-    if not FW_IsBoolean(expr) or not expr then
+    if not TF_Utils__IsBoolean(expr) or not expr then
         return msg
     End if
     return ""
@@ -173,8 +175,8 @@ End Function
 Function BTS__AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as string
     if not m.eqValues(first, second)
         if msg = ""
-            first_as_string = FW_AsString(first)
-            second_as_string = FW_AsString(second)
+            first_as_string = TF_Utils__AsString(first)
+            second_as_string = TF_Utils__AsString(second)
             msg = first_as_string + " != " + second_as_string 
         end if
         return msg
@@ -195,8 +197,8 @@ End Function
 Function BTS__AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as string
     if m.eqValues(first, second)
         if msg = ""
-            first_as_string = FW_AsString(first)
-            second_as_string = FW_AsString(second)
+            first_as_string = TF_Utils__AsString(first)
+            second_as_string = TF_Utils__AsString(second)
             msg = first_as_string + " == " + second_as_string 
         end if
         return msg
@@ -216,7 +218,7 @@ End Function
 Function BTS__AssertInvalid(value as dynamic, msg = "" as string) as string
     if value <> Invalid
         if msg = ""
-            expr_as_string = FW_AsString(value)
+            expr_as_string = TF_Utils__AsString(value)
             msg = expr_as_string + " <> Invalid"
         end if
         return msg
@@ -236,7 +238,7 @@ End Function
 Function BTS__AssertNotInvalid(value as dynamic, msg = "" as string) as string
     if value = Invalid
         if msg = ""
-            expr_as_string = FW_AsString(value)
+            expr_as_string = TF_Utils__AsString(value)
             msg = expr_as_string + " = Invalid"
         end if
         return msg
@@ -255,7 +257,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as string
-    if FW_IsAssociativeArray(array)
+    if TF_Utils__IsAssociativeArray(array)
         if not array.DoesExist(key)
             if msg = ""
                 msg = "Array doesn't have the '" + key + "' key."
@@ -280,7 +282,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as string
-    if FW_IsAssociativeArray(array)
+    if TF_Utils__IsAssociativeArray(array)
         if array.DoesExist(key)
             if msg = ""
                 msg = "Array has the '" + key + "' key."
@@ -305,7 +307,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) and FW_IsArray(keys)
+    if TF_Utils__IsAssociativeArray(array) and TF_Utils__IsArray(keys)
         for each key in keys
             if not array.DoesExist(key)
                 if msg = ""
@@ -332,7 +334,7 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) and FW_IsArray(keys)
+    if TF_Utils__IsAssociativeArray(array) and TF_Utils__IsArray(keys)
         for each key in keys
             if array.DoesExist(key)
                 if msg = ""
@@ -360,9 +362,9 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) or FW_IsArray(array)
-        if not FW_ArrayContains(array, value, key)
-            msg = "Array doesn't have the '" + FW_AsString(value) + "' value."
+    if TF_Utils__IsAssociativeArray(array) or TF_Utils__IsArray(array)
+        if not TF_Utils__ArrayContains(array, value, key)
+            msg = "Array doesn't have the '" + TF_Utils__AsString(value) + "' value."
             return msg
         end if
     else
@@ -384,9 +386,9 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) or FW_IsArray(array)
-        if FW_ArrayContains(array, value, key)
-            msg = "Array has the '" + FW_AsString(value) + "' value."
+    if TF_Utils__IsAssociativeArray(array) or TF_Utils__IsArray(array)
+        if TF_Utils__ArrayContains(array, value, key)
+            msg = "Array has the '" + TF_Utils__AsString(value) + "' value."
             return msg
         end if
     else
@@ -407,8 +409,8 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as string
-    if (FW_IsAssociativeArray(array) and FW_IsAssociativeArray(subset)) or (FW_IsArray(array) and FW_IsArray(subset))
-        isAA = FW_IsAssociativeArray(subset)
+    if (TF_Utils__IsAssociativeArray(array) and TF_Utils__IsAssociativeArray(subset)) or (TF_Utils__IsArray(array) and TF_Utils__IsArray(subset))
+        isAA = TF_Utils__IsAssociativeArray(subset)
         for each item in subset
             key = invalid
             value = item
@@ -416,8 +418,8 @@ Function BTS__AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg
                 key = item
                 value = item[key]
             end if
-            if not FW_ArrayContains(array, value, key)
-                msg = "Array doesn't have the '" + FW_AsString(value) + "' value."
+            if not TF_Utils__ArrayContains(array, value, key)
+                msg = "Array doesn't have the '" + TF_Utils__AsString(value) + "' value."
                 return msg
             end if
         end for
@@ -439,8 +441,8 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as string
-    if (FW_IsAssociativeArray(array) and FW_IsAssociativeArray(subset)) or (FW_IsArray(array) and FW_IsArray(subset))
-        isAA = FW_IsAssociativeArray(subset)
+    if (TF_Utils__IsAssociativeArray(array) and TF_Utils__IsAssociativeArray(subset)) or (TF_Utils__IsArray(array) and TF_Utils__IsArray(subset))
+        isAA = TF_Utils__IsAssociativeArray(subset)
         for each item in subset
             key = invalid
             value = item
@@ -448,8 +450,8 @@ Function BTS__AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, 
                 key = item
                 value = item[key]
             end if
-            if FW_ArrayContains(array, value, key)
-                msg = "Array has the '" + FW_AsString(value) + "' value."
+            if TF_Utils__ArrayContains(array, value, key)
+                msg = "Array has the '" + TF_Utils__AsString(value) + "' value."
                 return msg
             end if
         end for
@@ -471,9 +473,9 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) or FW_IsArray(array)
+    if TF_Utils__IsAssociativeArray(array) or TF_Utils__IsArray(array)
         if array.Count() <> count
-            msg = "Array items count <> " + FW_AsString(count) + "."
+            msg = "Array items count <> " + TF_Utils__AsString(count) + "."
             return msg
         end if
     else
@@ -494,9 +496,9 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) or FW_IsArray(array)
+    if TF_Utils__IsAssociativeArray(array) or TF_Utils__IsArray(array)
         if array.Count() = count
-            msg = "Array items count = " + FW_AsString(count) + "."
+            msg = "Array items count = " + TF_Utils__AsString(count) + "."
             return msg
         end if
     else
@@ -516,12 +518,12 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertEmpty(item as dynamic, msg = "" as string) as string
-    if FW_IsAssociativeArray(item) or FW_IsArray(item)
+    if TF_Utils__IsAssociativeArray(item) or TF_Utils__IsArray(item)
         if item.Count() > 0
             msg = "Array is not empty."
             return msg
         end if
-    else if FW_AsString(item) <> ""
+    else if TF_Utils__AsString(item) <> ""
         msg = "Input value is not empty."
         return msg
     end if
@@ -538,12 +540,12 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertNotEmpty(item as dynamic, msg = "" as string) as string
-    if FW_IsAssociativeArray(item) or FW_IsArray(item)
+    if TF_Utils__IsAssociativeArray(item) or TF_Utils__IsArray(item)
         if item.Count() = 0
             msg = "Array is empty."
             return msg
         end if
-    else if FW_AsString(item) = ""
+    else if TF_Utils__AsString(item) = ""
         msg = "Input value is empty."
         return msg
     end if
@@ -561,11 +563,11 @@ End Function
 ' @return An error message.
 '----------------------------------------------------------------
 Function BTS__AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as string
-    if FW_IsAssociativeArray(array) or FW_IsArray(array)
-        methodName = "FW_Is" + typeStr
+    if TF_Utils__IsAssociativeArray(array) or TF_Utils__IsArray(array)
+        methodName = "TF_Utils__Is" + typeStr
         for each item in array
             if not methodName(item)
-                msg = FW_AsString(item) + "is not a '" + typeStr + "' type."
+                msg = TF_Utils__AsString(item) + "is not a '" + typeStr + "' type."
                 return msg
             end if    
         end for
@@ -581,51 +583,40 @@ End Function
 '----------------------------------------------------------------
 
 '----------------------------------------------------------------
-' Compare two arbtrary values to eachother.
+' Compare two arbitrary values to each other.
+' 
+' @param Value1 (dynamic) A first item to compare.
+' @param Value2 (dynamic) A second item to compare.
+' @param comparator (Function, optional) Function, to compare 2 values. Should take in 2 parameters and return either true or false.
+'
+' @return True if values are equal or False in other case.
+'----------------------------------------------------------------
+Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic, comparator = m.baseComparator as Function) as Boolean
+    return comparator(value1, value2)
+End Function
+
+'----------------------------------------------------------------
+' Base comparator for comparing two values.
 ' 
 ' @param Value1 (dynamic) A first item to compare.
 ' @param Value2 (dynamic) A second item to compare.
 '
 ' @return True if values are equal or False in other case.
-'----------------------------------------------------------------
-Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
-    ' Workaraund for bug with String boxing
-    if type(Value1) = "roString"
-        Value1 = FW_AsString(Value1)
-    end if
+function BTS__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boolean
+    value1Type = type(value1)
+    value2Type = type(value2)
     
-    if type(Value2) = "roString"
-        Value2 = FW_AsString(Value2)
-    end if
-    
-    'Upcast int to float, if other is float
-    if type(Value1) = "roFloat" and type(Value2) = "roInt"
-        Value2 = box(Cdbl(Value2))
-    else if type(Value2) = "roFloat" and type(Value1) = "roInt"
-        Value1 = box(Cdbl(Value1))
-    end if
-
-    if type(Value1) <> type(Value2)
-        return False
+    if (value1Type = "roList" or value1Type = "roArray") and (value2Type = "roList" or value2Type = "roArray")
+        return m.eqArrays(value1, value2)
+    else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
+        return m.eqAssocArrays(value1, value2)
     else
-        valtype = type(Value1)
-        
-        if valtype = "<uninitialized>"
-            return False
-        else if valtype = "roList"
-            return m.eqArrays(Value1, Value2)
-        else if valtype = "roAssociativeArray"
-            return m.eqAssocArrays(Value1, Value2)
-        else if valtype = "roArray"
-            return m.eqArrays(Value1, Value2)
-        else
-            return Value1 = Value2
-        end if    
+        return value1 = value2
     end if
-End Function 
+end function
 
 '----------------------------------------------------------------
-' Compare to roAssociativeArray objects for equality.
+' Compare two roAssociativeArray objects for equality.
 ' 
 ' @param Value1 (object) A first associative array.
 ' @param Value2 (object) A second associative array.
@@ -655,7 +646,7 @@ Function BTS__EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
 End Function 
 
 '----------------------------------------------------------------
-' Compare to roArray objects for equality.
+' Compare two roArray objects for equality.
 ' 
 ' @param Value1 (object) A first array.
 ' @param Value2 (object) A second array.
@@ -721,7 +712,7 @@ Function ItemGenerator(scheme as object) as Object
     this.getString      = IG_GetString
     this.getBoolean     = IG_GetBoolean
     
-    if not FW_IsValid(scheme)
+    if not TF_Utils__IsValid(scheme)
         return invalid
     end if
     
@@ -744,11 +735,11 @@ Function IG_GetItem(scheme as object) as object
     
     item = invalid
     
-    if FW_IsAssociativeArray(scheme)
+    if TF_Utils__IsAssociativeArray(scheme)
         item = m.getAssocArray(scheme)
-    else if FW_IsArray(scheme)
+    else if TF_Utils__IsArray(scheme)
         item = m.getArray(scheme)
-    else if FW_IsString(scheme) 
+    else if TF_Utils__IsString(scheme) 
         item = m.getSimpleType(lCase(scheme))
     end if    
     
@@ -828,7 +819,7 @@ End Function
 ' @return A random boolean value.
 '----------------------------------------------------------------
 Function IG_GetBoolean() as boolean
-    return FW_AsBoolean(Rnd(2) \ Rnd(2))
+    return TF_Utils__AsBoolean(Rnd(2) \ Rnd(2))
 End Function
 
 '----------------------------------------------------------------
@@ -920,13 +911,14 @@ function Logger() as Object
     this = {}
 
     this.verbosityLevel = {
-        basic   : 0
-        normal  : 1
-        verbose : 2   
+        basic           : 0
+        normal          : 1
+        verboseFailed   : 2
+        verbose         : 3
     }
 
     ' Internal properties
-    this.verbosity              = 1
+    this.verbosity              = this.verbosityLevel.normal
     this.echoEnabled            = false
     this.serverURL              = invalid
 
@@ -967,11 +959,12 @@ end function
 ' Posible values:
 '     0 - basic
 '     1 - normal
-'     2 - verbose
+'     2 - verbose failed tests
+'     3 - verbose
 ' Default level: 1
 '----------------------------------------------------------------
-sub Logger__SetVerbosity(verbosity = 1 as Integer)
-    if verbosity >= 0 and verbosity <= 2
+sub Logger__SetVerbosity(verbosity = m.verbosityLevel.normal as Integer)
+    if verbosity >= m.verbosityLevel.basic and verbosity <= m.verbosityLevel.verbose
         m.verbosity = verbosity
     end if
 end sub
@@ -1020,10 +1013,14 @@ sub Logger__PrintStatistic(statObj as Object)
     if not m.echoEnabled
         m.PrintStart()
 
-        if m.verbosity = m.verbosityLevel.normal
+        if m.verbosity = m.verbosityLevel.normal or m.verbosity = m.verbosityLevel.verboseFailed
             for each testSuite in statObj.Suites
                 for each testCase in testSuite.Tests
-                    ? "***   "; testSuite.Name; ": "; testCase.Name; " - "; testCase.Result
+                    if m.verbosity = m.verbosityLevel.verboseFailed and testCase.result = "Fail"
+                        m.printTestStatistic(testCase)
+                    else
+                        ? "***   "; testSuite.Name; ": "; testCase.Name; " - "; testCase.Result
+                    end if
                 end for
             end for
         else if m.verbosity = m.verbosityLevel.verbose
@@ -1034,7 +1031,7 @@ sub Logger__PrintStatistic(statObj as Object)
     end if
 
     ? "***"
-    ? "***   Total  = "; FW_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Crashes  = "; statObj.Crash;
+    ? "***   Total  = "; TF_Utils__AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Crashes  = "; statObj.Crash;
     ? " Time spent: "; statObj.Time; "ms"
     ? "***"
 
@@ -1142,10 +1139,10 @@ end function
 ' @param statTestObj (object) A test statistic to append.
 '----------------------------------------------------------------
 sub Logger__AppendTestStatistic(statSuiteObj as Object, statTestObj as Object)
-    if FW_IsAssociativeArray(statSuiteObj) and FW_IsAssociativeArray(statTestObj)
+    if TF_Utils__IsAssociativeArray(statSuiteObj) and TF_Utils__IsAssociativeArray(statTestObj)
         statSuiteObj.Tests.Push(statTestObj)
 
-        if FW_IsInteger(statTestObj.time)
+        if TF_Utils__IsInteger(statTestObj.time)
             statSuiteObj.Time = statSuiteObj.Time + statTestObj.Time
         end if
 
@@ -1176,23 +1173,23 @@ end sub
 ' @param statSuiteObj (object) A test suite statistic object to append.
 '----------------------------------------------------------------
 sub Logger__AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
-    if FW_IsAssociativeArray(statTotalObj) and FW_IsAssociativeArray(statSuiteObj)
+    if TF_Utils__IsAssociativeArray(statTotalObj) and TF_Utils__IsAssociativeArray(statSuiteObj)
         statTotalObj.Suites.Push(statSuiteObj)
         statTotalObj.Time = statTotalObj.Time + statSuiteObj.Time
 
-        if FW_IsInteger(statSuiteObj.Total)
+        if TF_Utils__IsInteger(statSuiteObj.Total)
             statTotalObj.Total = statTotalObj.Total + statSuiteObj.Total
         end if
 
-        if FW_IsInteger(statSuiteObj.Correct)
+        if TF_Utils__IsInteger(statSuiteObj.Correct)
             statTotalObj.Correct = statTotalObj.Correct + statSuiteObj.Correct
         end if
 
-        if FW_IsInteger(statSuiteObj.Fail)
+        if TF_Utils__IsInteger(statSuiteObj.Fail)
             statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
         end if
 
-        if FW_IsInteger(statSuiteObj.Crash)
+        if TF_Utils__IsInteger(statSuiteObj.Crash)
             statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
         end if
 
@@ -1219,7 +1216,7 @@ sub Logger__PrintSuiteStatistic(statSuiteObj as Object)
     end if
 
     ? "==="
-    ? "===   Total  = "; FW_AsString(statSuiteObj.Total); " ; Passed  = "; statSuiteObj.Correct; " ; Failed   = "; statSuiteObj.Fail; " ; Crashes  = "; statSuiteObj.Crash;
+    ? "===   Total  = "; TF_Utils__AsString(statSuiteObj.Total); " ; Passed  = "; statSuiteObj.Correct; " ; Failed   = "; statSuiteObj.Fail; " ; Crashes  = "; statSuiteObj.Crash;
     ? " Time spent: "; statSuiteObj.Time; "ms"
     ? "==="
 
@@ -1363,7 +1360,10 @@ end sub
 '        TestRunner__SetTestCaseName
 '        TestRunner__SetFailFast
 '        TestRunner__GetTestSuitesList
+'        TestRunner__GetTestSuiteNamesList
 '        TestRunner__GetTestFilesList
+'        TestRunner__GetTestNodesList
+'        TestFramework__RunNodeTests
 
 '----------------------------------------------------------------
 ' Main function. Create TestRunner object.
@@ -1374,11 +1374,18 @@ function TestRunner() as Object
 
     this = {}
 
+    this.isNodeMode = getGlobalAA().top <> invalid
     this.logger = Logger()
 
     ' Internal properties
-    this.testsDirectory         = "pkg:/source/tests"
-    this.testFilePrefix         = "Test__"
+    this.nodesTestDirectory = "pkg:/components/tests"
+    if this.isNodeMode
+        this.testsDirectory = this.nodesTestDirectory
+        this.testFilePrefix = m.top.subtype()
+    else
+        this.testsDirectory = "pkg:/source/tests"
+        this.testFilePrefix = "Test__"
+    end if
     this.testSuitePrefix        = "TestSuite__"
     this.testSuiteName          = ""
     this.testCaseName           = ""
@@ -1396,24 +1403,31 @@ function TestRunner() as Object
     ' Internal functions
     this.GetTestFilesList       = TestRunner__GetTestFilesList
     this.GetTestSuitesList      = TestRunner__GetTestSuitesList
+    this.GetTestNodesList		= TestRunner__GetTestNodesList
+    this.GetTestSuiteNamesList	= TestRunner__GetTestSuiteNamesList
 
     return this
 end function
 
 '----------------------------------------------------------------
 ' Run main test loop.
+' 
+' @param statObj (object, optional) statistic object to be used in tests
+' @param testSuiteNamesList (array, optional) array of test suite function names to be used in tests
+'
+' @return Statistic object if run in node mode, invalid otherwise 
 '----------------------------------------------------------------
-sub TestRunner__Run()
+function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, testSuiteNamesList = [] as Object) as Object
     alltestCount = 0
-    totalStatObj = m.logger.CreateTotalStatistic()
-    testSuitesList = m.GetTestSuitesList()
+    totalStatObj = statObj
+    testSuitesList = m.GetTestSuitesList(testSuiteNamesList)
 
     for each testSuite in testSuitesList
         testCases = testSuite.testCases
         testCount = testCases.Count()
         alltestCount = alltestCount + testCount
 
-        if FW_IsFunction(testSuite.SetUp)
+        if TF_Utils__IsFunction(testSuite.SetUp)
             m.logger.PrintSuiteSetUp(testSuite.Name)
             testSuite.SetUp()
         end if
@@ -1422,13 +1436,14 @@ sub TestRunner__Run()
 
         for each testCase in testCases
             if m.testCaseName = "" or (m.testCaseName <> "" and LCase(testCase.Name) = LCase(m.testCaseName))
-                if FW_IsFunction(testCase.SetUp)
+                if TF_Utils__IsFunction(testCase.SetUp)
                     m.logger.PrintTestSetUp(testCase.Name)
                     testCase.SetUp()
                 end if
 
                 testTimer = CreateObject("roTimespan")
                 testStatObj = m.logger.CreateTestStatistic(testCase.Name)
+                testSuite.testInstance = testCase
                 testSuite.testCase = testCase.Func
 
                 runResult = testSuite.testCase()
@@ -1444,7 +1459,7 @@ sub TestRunner__Run()
                 testStatObj.Time = testTimer.TotalMilliseconds()
                 m.logger.AppendTestStatistic(suiteStatObj, testStatObj)
 
-                if FW_IsFunction(testCase.TearDown)
+                if TF_Utils__IsFunction(testCase.TearDown)
                     m.logger.PrintTestTearDown(testCase.Name)
                     testCase.TearDown()
                 end if
@@ -1457,7 +1472,7 @@ sub TestRunner__Run()
 
         m.logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
 
-        if FW_IsFunction(testSuite.TearDown)
+        if TF_Utils__IsFunction(testSuite.TearDown)
             m.logger.PrintSuiteTearDown(testSuite.Name)
             testSuite.TearDown()
         end if
@@ -1467,8 +1482,22 @@ sub TestRunner__Run()
         end if
     end for
 
-    m.logger.PrintStatistic(totalStatObj)
-end sub
+    if m.isNodeMode
+        return totalStatObj
+    else
+        testNodes = m.getTestNodesList()
+        
+        for each testNodeName in testNodes
+            testNode = createObject("roSGNode", testNodeName)
+            if testNode <> invalid
+                testSuiteNamesList = m.GetTestSuiteNamesList(testNodeName)
+                totalStatObj = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
+            end if
+        end for
+        
+        m.logger.PrintStatistic(totalStatObj)
+    end if
+end function
 
 '----------------------------------------------------------------
 ' Set testsDirectory property.
@@ -1482,9 +1511,9 @@ end sub
 '----------------------------------------------------------------
 ' Set setTestFilePrefix property.
 '----------------------------------------------------------------
-sub TestRunner__SetTestFilePrefix(setTestFilePrefix as String)
-    if setTestFilePrefix <> invalid
-        m.setTestFilePrefix = setTestFilePrefix
+sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
+    if testFilePrefix <> invalid
+        m.testFilePrefix = setTestFilePrefix
     end if
 end sub
 
@@ -1523,31 +1552,77 @@ sub TestRunner__SetFailFast(failFast = false as Boolean)
 end sub
 
 '----------------------------------------------------------------
-' Scan all test files for test suites.
+' Builds an array of test suite objects.
+'
+' @param testSuiteNamesList (string, optional) array of names of test suite functions. If not passed, scans all test files for test suites
 '
 ' @return An array of test suites.
 '----------------------------------------------------------------
-function TestRunner__GetTestSuitesList() as Object
+function TestRunner__GetTestSuitesList(testSuiteNamesList = [] as Object) as Object
+    result = []
+    
+    if testSuiteNamesList.count() > 0
+        for each functionName in testSuiteNamesList
+            eval("testSuite=" + functionName)
+            testSuite = testSuite()
+            
+            if TF_Utils__IsAssociativeArray(testSuite)
+                result.Push(testSuite)
+            end if
+        end for
+	else
+	    testSuiteRegex = CreateObject("roRegex", "^(function|sub)\s(" + m.testSuitePrefix + m.testSuiteName + "[0-9a-z\_]*)\s*\(", "i")
+	    testFilesList = m.GetTestFilesList()
+	
+	    for each filePath in testFilesList
+	        code = TF_Utils__AsString(ReadAsciiFile(filePath))
+	
+	        if code <> ""
+	            for each line in code.Tokenize(chr(10))
+	                line.Trim()
+	
+	                if testSuiteRegex.IsMatch(line)
+	                    testSuite = invalid
+	                    functionName = testSuiteRegex.Match(line).Peek()
+
+                        eval("testSuite=" + functionName)
+                        testSuite = testSuite()
+
+	                    if TF_Utils__IsAssociativeArray(testSuite)
+	                        result.Push(testSuite)
+	                    end if
+	                end if
+	            end for
+	        end if
+	    end for
+    end if
+
+    return result
+end function
+
+
+'----------------------------------------------------------------
+' Scans all test files for test suite function names for a given test node.
+'
+' @param testNodeName (string) name of a test node, test suites for which are needed
+'
+' @return An array of test suite names.
+'----------------------------------------------------------------
+function TestRunner__GetTestSuiteNamesList(testNodeName as String) as Object
     result = []
     testSuiteRegex = CreateObject("roRegex", "^(function|sub)\s(" + m.testSuitePrefix + m.testSuiteName + "[0-9a-z\_]*)\s*\(", "i")
-    testFilesList = m.GetTestFilesList()
+    testFilesList = m.GetTestFilesList(m.nodesTestDirectory, testNodeName)
 
     for each filePath in testFilesList
-        code = FW_AsString(ReadAsciiFile(filePath))
+        code = TF_Utils__AsString(ReadAsciiFile(filePath))
 
         if code <> ""
             for each line in code.Tokenize(chr(10))
                 line.Trim()
 
                 if testSuiteRegex.IsMatch(line)
-                    testSuite = invalid
                     functionName = testSuiteRegex.Match(line).Peek()
-
-                    eval("testSuite=" + functionName + "()")
-
-                    if FW_IsAssociativeArray(testSuite)
-                        result.Push(testSuite)
-                    end if
+                    result.Push(functionName)
                 end if
             end for
         end if
@@ -1556,16 +1631,18 @@ function TestRunner__GetTestSuitesList() as Object
     return result
 end function
 
+
 '----------------------------------------------------------------
 ' Scan testsDirectory and all subdirectories for test files.
 '
-' @param testsDirectory (string) A target directory with test files.
+' @param testsDirectory (string, optional) A target directory with test files.
+' @param testFilePrefix (string, optional) prefix, used by test files
 '
 ' @return An array of test files.
 '----------------------------------------------------------------
-function TestRunner__GetTestFilesList(testsDirectory = m.testsDirectory as String) as Object
+function TestRunner__GetTestFilesList(testsDirectory = m.testsDirectory as String, testFilePrefix = m.testFilePrefix as String) as Object
     result = []
-    testsFileRegex = CreateObject("roRegex", "^(" + m.testFilePrefix + ")[0-9a-z\_]*\.brs$", "i")
+    testsFileRegex = CreateObject("roRegex", "^(" + testFilePrefix + ")[0-9a-z\_]*\.brs$", "i")
 
     if testsDirectory <> ""
         fileSystem = CreateObject("roFileSystem")
@@ -1576,7 +1653,7 @@ function TestRunner__GetTestFilesList(testsDirectory = m.testsDirectory as Strin
             itemStat = fileSystem.Stat(itemPath)
 
             if itemStat.type = "directory" then
-                result.Append(m.getTestFilesList(itemPath))
+                result.Append(m.getTestFilesList(itemPath, testFilePrefix))
             else if testsFileRegex.IsMatch(item) then
                 result.Push(itemPath)
             end if
@@ -1584,6 +1661,53 @@ function TestRunner__GetTestFilesList(testsDirectory = m.testsDirectory as Strin
     end if
 
     return result
+end function
+
+
+'----------------------------------------------------------------
+' Scan nodesTestDirectory and all subdirectories for test nodes.
+'
+' @param nodesTestDirectory (string, optional) A target directory with test nodes.
+'
+' @return An array of test node names.
+'----------------------------------------------------------------
+function TestRunner__GetTestNodesList(testsDirectory = m.nodesTestDirectory as String) as Object
+    result = []
+    testsFileRegex = CreateObject("roRegex", "^(" + m.testFilePrefix + ")[0-9a-z\_]*\.xml$", "i")
+
+    if testsDirectory <> ""
+        fileSystem = CreateObject("roFileSystem")
+        listing = fileSystem.GetDirectoryListing(testsDirectory)
+
+        for each item in listing
+            itemPath = testsDirectory + "/" + item
+            itemStat = fileSystem.Stat(itemPath)
+
+            if itemStat.type = "directory" then
+                result.Append(m.getTestNodesList(itemPath))
+            else if testsFileRegex.IsMatch(item) then
+                result.Push(item.replace(".xml", ""))
+            end if
+        end for
+    end if
+
+    return result
+end function
+
+
+'----------------------------------------------------------------
+' Creates and runs test runner. Should be used ONLY within a node.
+'
+' @param params (array) parameters, passed from main thread, used to setup new test runner
+'
+' @return statistic object.
+'----------------------------------------------------------------
+function TestFramework__RunNodeTests(params as Object) as Object
+    statObj = params[0]
+    testSuiteNamesList = params[1]
+
+    Runner = TestRunner()
+    return Runner.RUN(statObj, testSuiteNamesList)
 end function
 '*****************************************************************
 '* Copyright Roku 2011-2017
@@ -1593,155 +1717,155 @@ end function
 '*****************************************************************
 
 '*************************************************
-' FW_IsXmlElement - check if value contains XMLElement interface
+' TF_Utils__IsXmlElement - check if value contains XMLElement interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains XMLElement interface, else return false
 '*************************************************
-function FW_IsXmlElement(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
+function TF_Utils__IsXmlElement(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
 end function
 
 '*************************************************
-' FW_IsFunction - check if value contains Function interface
+' TF_Utils__IsFunction - check if value contains Function interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains Function interface, else return false
 '*************************************************
-function FW_IsFunction(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifFunction") <> invalid
+function TF_Utils__IsFunction(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifFunction") <> invalid
 end function
 
 '*************************************************
-' FW_IsBoolean - check if value contains Boolean interface
+' TF_Utils__IsBoolean - check if value contains Boolean interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains Boolean interface, else return false
 '*************************************************
-function FW_IsBoolean(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
+function TF_Utils__IsBoolean(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
 end function
 
 '*************************************************
-' FW_IsInteger - check if value type equals Integer
+' TF_Utils__IsInteger - check if value type equals Integer
 ' @param value As Dynamic
 ' @return As Boolean - true if value type equals Integer, else return false
 '*************************************************
-function FW_IsInteger(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
+function TF_Utils__IsInteger(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
 end function
 
 '*************************************************
-' FW_IsFloat - check if value contains Float interface
+' TF_Utils__IsFloat - check if value contains Float interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains Float interface, else return false
 '*************************************************
-function FW_IsFloat(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifFloat") <> invalid
+function TF_Utils__IsFloat(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifFloat") <> invalid
 end function
 
 '*************************************************
-' FW_IsDouble - check if value contains Double interface
+' TF_Utils__IsDouble - check if value contains Double interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains Double interface, else return false
 '*************************************************
-function FW_IsDouble(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifDouble") <> invalid
+function TF_Utils__IsDouble(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifDouble") <> invalid
 end function
 
 '*************************************************
-' FW_IsLongInteger - check if value contains LongInteger interface
+' TF_Utils__IsLongInteger - check if value contains LongInteger interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains LongInteger interface, else return false
 '*************************************************
-function FW_IsLongInteger(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifLongInt") <> invalid
+function TF_Utils__IsLongInteger(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifLongInt") <> invalid
 end function
 
 '*************************************************
-' FW_IsNumber - check if value contains LongInteger or Integer or Double or Float interface
+' TF_Utils__IsNumber - check if value contains LongInteger or Integer or Double or Float interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value is number, else return false
 '*************************************************
-function FW_IsNumber(value as Dynamic) as Boolean
-    return FW_IsLongInteger(value) or FW_IsDouble(value) or FW_IsInteger(value) or FW_IsFloat(value)
+function TF_Utils__IsNumber(value as Dynamic) as Boolean
+    return TF_Utils__IsLongInteger(value) or TF_Utils__IsDouble(value) or TF_Utils__IsInteger(value) or TF_Utils__IsFloat(value)
 end function
 
 '*************************************************
-' FW_IsList - check if value contains List interface
+' TF_Utils__IsList - check if value contains List interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains List interface, else return false
 '*************************************************
-function FW_IsList(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifList") <> invalid
+function TF_Utils__IsList(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifList") <> invalid
 end function
 
 '*************************************************
-' FW_IsArray - check if value contains Array interface
+' TF_Utils__IsArray - check if value contains Array interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains Array interface, else return false
 '*************************************************
-function FW_IsArray(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifArray") <> invalid
+function TF_Utils__IsArray(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifArray") <> invalid
 end function
 
 '*************************************************
-' FW_IsAssociativeArray - check if value contains AssociativeArray interface
+' TF_Utils__IsAssociativeArray - check if value contains AssociativeArray interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains AssociativeArray interface, else return false
 '*************************************************
-function FW_IsAssociativeArray(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
+function TF_Utils__IsAssociativeArray(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
 end function
 
 '*************************************************
-' FW_IsSGNode - check if value contains SGNodeChildren interface
+' TF_Utils__IsSGNode - check if value contains SGNodeChildren interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains SGNodeChildren interface, else return false
 '*************************************************
-function FW_IsSGNode(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
+function TF_Utils__IsSGNode(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
 end function
 
 '*************************************************
-' FW_IsString - check if value contains String interface
+' TF_Utils__IsString - check if value contains String interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains String interface, else return false
 '*************************************************
-function FW_IsString(value as Dynamic) as Boolean
-    return FW_IsValid(value) and GetInterface(value, "ifString") <> invalid
+function TF_Utils__IsString(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and GetInterface(value, "ifString") <> invalid
 end function
 
 '*************************************************
-' FW_IsNotEmptyString - check if value contains String interface and length more 0
+' TF_Utils__IsNotEmptyString - check if value contains String interface and length more 0
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains String interface and length more 0, else return false
 '*************************************************
-function FW_IsNotEmptyString(value as Dynamic) as Boolean
-    return FW_IsString(value) and len(value) > 0
+function TF_Utils__IsNotEmptyString(value as Dynamic) as Boolean
+    return TF_Utils__IsString(value) and len(value) > 0
 end function
 
 '*************************************************
-' FW_IsDateTime - check if value contains DateTime interface
+' TF_Utils__IsDateTime - check if value contains DateTime interface
 ' @param value As Dynamic
 ' @return As Boolean - true if value contains DateTime interface, else return false
 '*************************************************
-function FW_IsDateTime(value as Dynamic) as Boolean
-    return FW_IsValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
+function TF_Utils__IsDateTime(value as Dynamic) as Boolean
+    return TF_Utils__IsValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
 end function
 
 '*************************************************
-' FW_IsValid - check if value initialized and not equal invalid
+' TF_Utils__IsValid - check if value initialized and not equal invalid
 ' @param value As Dynamic
 ' @return As Boolean - true if value initialized and not equal invalid, else return false
 '*************************************************
-function FW_IsValid(value as Dynamic) as Boolean
+function TF_Utils__IsValid(value as Dynamic) as Boolean
     return Type(value) <> "<uninitialized>" and value <> invalid
 end function
 
 '*************************************************
-' FW_ValidStr - return value if his contains String interface else return empty string
+' TF_Utils__ValidStr - return value if his contains String interface else return empty string
 ' @param value As Object
 ' @return As String - value if his contains String interface else return empty string
 '*************************************************
-function FW_ValidStr(obj as Object) as String
+function TF_Utils__ValidStr(obj as Object) as String
     if obj <> invalid and GetInterface(obj, "ifString") <> invalid
         return obj
     else
@@ -1750,18 +1874,18 @@ function FW_ValidStr(obj as Object) as String
 end function 
 
 '*************************************************
-' FW_AsString - convert input to String if this possible, else return empty string
+' TF_Utils__AsString - convert input to String if this possible, else return empty string
 ' @param input As Dynamic
 ' @return As String - return converted string
 '*************************************************
-function FW_AsString(input as Dynamic) as String
-    if FW_IsValid(input) = false
+function TF_Utils__AsString(input as Dynamic) as String
+    if TF_Utils__IsValid(input) = false
         return ""
-    else if FW_IsString(input)
+    else if TF_Utils__IsString(input)
         return input
-    else if FW_IsInteger(input) or FW_IsLongInteger(input) or FW_IsBoolean(input)
+    else if TF_Utils__IsInteger(input) or TF_Utils__IsLongInteger(input) or TF_Utils__IsBoolean(input)
         return input.ToStr()
-    else if FW_IsFloat(input) or FW_IsDouble(input)
+    else if TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input)
         return Str(input).Trim()
     else
         return ""
@@ -1769,18 +1893,18 @@ function FW_AsString(input as Dynamic) as String
 end function
 
 '*************************************************
-' FW_AsInteger - convert input to Integer if this possible, else return 0
+' TF_Utils__AsInteger - convert input to Integer if this possible, else return 0
 ' @param input As Dynamic
 ' @return As Integer - return converted Integer
 '*************************************************
-function FW_AsInteger(input as Dynamic) as Integer
-    if FW_IsValid(input) = false
+function TF_Utils__AsInteger(input as Dynamic) as Integer
+    if TF_Utils__IsValid(input) = false
         return 0
-    else if FW_IsString(input)
+    else if TF_Utils__IsString(input)
         return input.ToInt()
-    else if FW_IsInteger(input)
+    else if TF_Utils__IsInteger(input)
         return input
-    else if FW_IsFloat(input) or FW_IsDouble(input) or FW_IsLongInteger(input)
+    else if TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input) or TF_Utils__IsLongInteger(input)
         return Int(input)
     else
         return 0
@@ -1788,16 +1912,16 @@ function FW_AsInteger(input as Dynamic) as Integer
 end function
 
 '*************************************************
-' FW_AsLongInteger - convert input to LongInteger if this possible, else return 0
+' TF_Utils__AsLongInteger - convert input to LongInteger if this possible, else return 0
 ' @param input As Dynamic
 ' @return As Integer - return converted LongInteger
 '*************************************************
-function FW_AsLongInteger(input as Dynamic) as LongInteger
-    if FW_IsValid(input) = false
+function TF_Utils__AsLongInteger(input as Dynamic) as LongInteger
+    if TF_Utils__IsValid(input) = false
         return 0
-    else if FW_IsString(input)
-        return FW_AsInteger(input)
-    else if FW_IsLongInteger(input) or FW_IsFloat(input) or FW_IsDouble(input) or FW_IsInteger(input)
+    else if TF_Utils__IsString(input)
+        return TF_Utils__AsInteger(input)
+    else if TF_Utils__IsLongInteger(input) or TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input) or TF_Utils__IsInteger(input)
         return input
     else
         return 0
@@ -1805,18 +1929,18 @@ function FW_AsLongInteger(input as Dynamic) as LongInteger
 end function
 
 '*************************************************
-' FW_AsFloat - convert input to Float if this possible, else return 0.0
+' TF_Utils__AsFloat - convert input to Float if this possible, else return 0.0
 ' @param input As Dynamic
 ' @return As Float - return converted Float
 '*************************************************
-function FW_AsFloat(input as Dynamic) as Float
-    if FW_IsValid(input) = false
+function TF_Utils__AsFloat(input as Dynamic) as Float
+    if TF_Utils__IsValid(input) = false
         return 0.0
-    else if FW_IsString(input)
+    else if TF_Utils__IsString(input)
         return input.ToFloat()
-    else if FW_IsInteger(input)
+    else if TF_Utils__IsInteger(input)
         return (input / 1)
-    else if FW_IsFloat(input) or FW_IsDouble(input) or FW_IsLongInteger(input)
+    else if TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input) or TF_Utils__IsLongInteger(input)
         return input
     else
         return 0.0
@@ -1824,16 +1948,16 @@ function FW_AsFloat(input as Dynamic) as Float
 end function
 
 '*************************************************
-' FW_AsDouble - convert input to Double if this possible, else return 0.0
+' TF_Utils__AsDouble - convert input to Double if this possible, else return 0.0
 ' @param input As Dynamic
 ' @return As Float - return converted Double
 '*************************************************
-function FW_AsDouble(input as Dynamic) as Double
-    if FW_IsValid(input) = false
+function TF_Utils__AsDouble(input as Dynamic) as Double
+    if TF_Utils__IsValid(input) = false
         return 0.0
-    else if FW_IsString(input)
-        return FW_AsFloat(input)
-    else if FW_IsInteger(input) or FW_IsLongInteger(input) or FW_IsFloat(input) or FW_IsDouble(input)
+    else if TF_Utils__IsString(input)
+        return TF_Utils__AsFloat(input)
+    else if TF_Utils__IsInteger(input) or TF_Utils__IsLongInteger(input) or TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input)
         return input
     else
         return 0.0
@@ -1841,18 +1965,18 @@ function FW_AsDouble(input as Dynamic) as Double
 end function
 
 '*************************************************
-' FW_AsBoolean - convert input to Boolean if this possible, else return False
+' TF_Utils__AsBoolean - convert input to Boolean if this possible, else return False
 ' @param input As Dynamic
 ' @return As Boolean
 '*************************************************
-function FW_AsBoolean(input as Dynamic) as Boolean
-    if FW_IsValid(input) = false
+function TF_Utils__AsBoolean(input as Dynamic) as Boolean
+    if TF_Utils__IsValid(input) = false
         return false
-    else if FW_IsString(input)
+    else if TF_Utils__IsString(input)
         return LCase(input) = "true"
-    else if FW_IsInteger(input) or FW_IsFloat(input)
+    else if TF_Utils__IsInteger(input) or TF_Utils__IsFloat(input)
         return input <> 0
-    else if FW_IsBoolean(input)
+    else if TF_Utils__IsBoolean(input)
         return input
     else
         return false
@@ -1860,13 +1984,13 @@ function FW_AsBoolean(input as Dynamic) as Boolean
 end function
 
 '*************************************************
-' FW_AsArray - if type of value equals array return value, else return array with one element [value]
+' TF_Utils__AsArray - if type of value equals array return value, else return array with one element [value]
 ' @param value As Object
 ' @return As Object - roArray
 '*************************************************
-function FW_AsArray(value as Object) as Object
-    if FW_IsValid(value)
-        if not FW_IsArray(value)
+function TF_Utils__AsArray(value as Object) as Object
+    if TF_Utils__IsValid(value)
+        if not TF_Utils__IsArray(value)
             return [value]
         else
             return value
@@ -1880,15 +2004,15 @@ end function
 '=====================
 
 '*************************************************
-' FW_IsNullOrEmpty - check if value is invalid or empty
+' TF_Utils__IsNullOrEmpty - check if value is invalid or empty
 ' @param value As Dynamic
 ' @return As Boolean - true if value is null or empty string, else return false
 '*************************************************
-function FW_IsNullOrEmpty(value as Dynamic) as Boolean
-    if FW_IsString(value)
+function TF_Utils__IsNullOrEmpty(value as Dynamic) as Boolean
+    if TF_Utils__IsString(value)
         return Len(value) = 0
     else
-        return not FW_IsValid(value)
+        return not TF_Utils__IsValid(value)
     end if
 end function
 
@@ -1897,23 +2021,23 @@ end function
 '=====================
 
 '*************************************************
-' FW_FindElementIndexInArray - find an element index in array
+' TF_Utils__FindElementIndexInArray - find an element index in array
 ' @param array As Object
 ' @param value As Object
 ' @param compareAttribute As Dynamic
 ' @param caseSensitive As Boolean
 ' @return As Integer - element index if array contains a value, else return -1
 '*************************************************
-function FW_FindElementIndexInArray(array as Object, value as Object, compareAttribute = invalid as Dynamic, caseSensitive = false as Boolean) as Integer
-    if FW_IsArray(array)
-        for i = 0 to FW_AsArray(array).Count() - 1
+function TF_Utils__FindElementIndexInArray(array as Object, value as Object, compareAttribute = invalid as Dynamic, caseSensitive = false as Boolean) as Integer
+    if TF_Utils__IsArray(array)
+        for i = 0 to TF_Utils__AsArray(array).Count() - 1
             compareValue = array[i]
 
-            if compareAttribute <> invalid and FW_IsAssociativeArray(compareValue)
+            if compareAttribute <> invalid and TF_Utils__IsAssociativeArray(compareValue)
                 compareValue = compareValue.LookupCI(compareAttribute)
             end If
 
-            if FW_IsString(compareValue) and FW_IsString(value) and not caseSensitive
+            if TF_Utils__IsString(compareValue) and TF_Utils__IsString(value) and not caseSensitive
                 if LCase(compareValue) = LCase(value)
                     return i
                 end If
@@ -1928,12 +2052,12 @@ function FW_FindElementIndexInArray(array as Object, value as Object, compareAtt
 end function
 
 '*************************************************
-' FW_ArrayContains - check if array contains specified value
+' TF_Utils__ArrayContains - check if array contains specified value
 ' @param array As Object
 ' @param value As Object
 ' @param compareAttribute As Dynamic
 ' @return As Boolean - true if array contains a value, else return false
 '*************************************************
-function FW_ArrayContains(array as Object, value as Object, compareAttribute = invalid as Dynamic) as Boolean
-    return (FW_FindElementIndexInArray(array, value, compareAttribute) > -1)
+function TF_Utils__ArrayContains(array as Object, value as Object, compareAttribute = invalid as Dynamic) as Boolean
+    return (TF_Utils__FindElementIndexInArray(array, value, compareAttribute) > -1)
 end function

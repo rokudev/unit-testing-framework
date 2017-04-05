@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Panel that contains a list of labels -->
+<component name="ListMarkupDetailsPanel" extends="ListPanel" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+<interface>
+    <!-- Specifies the content -->
+    <field id="data" type="assocarray"/>
+</interface>
+
+<!-- Script element allows the definition of functions to initialize the component, 
+or include referrence to other file with common functionality -->
+<script type="text/brightscript" uri="pkg:/components/Panels/ListMarkupDetailsPanel/ListMarkupDetailsPanel.brs"/>
+<script type="text/brightscript" uri="pkg:/source/Utils.brs"/>
+
+<!-- Children element contains default and custom BrightScript Components -->
+<children>
+    <LabelList
+        id="labelList"/>
+</children>
+
+</component>

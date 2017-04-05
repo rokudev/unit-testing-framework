@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Node that represents data request and hanles received result --> 
+<component name="DataRequest" extends="Node" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+<!-- Interface element defines a set of fields to be exposed by a component -->
+<interface>
+	<!-- name of Api function to be called to receive data -->
+	<field id="name" 		type="string" />
+	<!-- pass the parameters to the Api function -->
+	<field id="params" 		type="assocarray" />
+	<!-- node that contains the resulting data -->
+	<field id="result" 		type="node" />
+</interface>
+
+<!-- Script element allows the definition of functions to initialize the component, 
+or include referrence to other file with common functionality -->
+<script type="text/brightscript" uri="pkg:/components/Nodes/DataRequest.brs"/>
+
+</component>

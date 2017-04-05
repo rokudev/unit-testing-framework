@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- This is a panel that has a list inside of it and handles proper focusing of it.
+	List is accessible via interface field "list" so you can customize it easily. -->
+<component name="MarkupListStubPanel" extends="Panel" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+	<!-- Interface element defines a set of fields to be exposed by a component -->
+	<interface>
+		<!-- provides acess to items list -->
+        <field id="list" type="node"/>
+        <!-- Specifies the content -->
+		<field id="data" type="assocarray" onChange="onDataSet"/>
+	</interface> 
+	
+	<!-- Script element allows the definition of functions to initialize the component, 
+	or include referrence to other file with common functionality -->
+	<script type="text/brightscript" uri="pkg:/components/Panels/MarkupListStubPanel/MarkupListStubPanel.brs"/>
+    <script type="text/brightscript" uri="pkg:/source/Utils.brs"/>
+
+	<!-- Children element contains default and custom BrightScript Components -->
+	<children>
+		<MarkupList
+			id="List"
+			numRows="1"
+            itemSize = "[619, 349]"
+            itemSpacing="[13, 13]"
+            translation="[0, 20]"
+            itemComponentName="VideoItem"
+			wrapDividerHeight="0"
+			wrapDividerBitmapUri=""
+			focusFootprintBitmapUri=""
+			drawFocusFeedbackOnTop="true"
+			focusBitmapUri="pkg:/images/focus_grid.9.png"/>
+	</children>
+</component>
