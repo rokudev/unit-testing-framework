@@ -84,7 +84,7 @@ function BaseTestSuite()
     this.eqValues                       = BTS__EqValues
     this.eqAssocArrays                  = BTS__EqAssocArray
     this.eqArrays                       = BTS__EqArray
-    this.baseComparator                 = BTS__BaseComparator 
+    this.compare                        = BTS__BaseCompare
 
     return this
 End Function
@@ -591,8 +591,8 @@ End Function
 '
 ' @return True if values are equal or False in other case.
 '----------------------------------------------------------------
-Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic, comparator = m.baseComparator as Function) as Boolean
-    return comparator(value1, value2)
+Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
+    return m.compare(value1, value2)
 End Function
 
 '----------------------------------------------------------------
@@ -602,7 +602,7 @@ End Function
 ' @param Value2 (dynamic) A second item to compare.
 '
 ' @return True if values are equal or False in other case.
-function BTS__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boolean
+function BTS__BaseCompare(value1 as Dynamic, value2 as Dynamic) as Boolean
     value1Type = type(value1)
     value2Type = type(value2)
     
