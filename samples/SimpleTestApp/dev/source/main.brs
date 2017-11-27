@@ -6,7 +6,7 @@ sub RunUserInterface(args)
         Runner = TestRunner()
         Runner.logger.SetVerbosity(2)
         Runner.logger.SetEcho(true)
-        Runner.SetFailFast(true)
+        Runner.SetFailFast(false)
         Runner.Run()
     end if
 end sub
