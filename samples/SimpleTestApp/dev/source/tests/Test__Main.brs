@@ -36,6 +36,8 @@ Function TestSuite__Main() as Object
     this.addTest("CheckStreamFormatType", TestCase__Main_CheckStreamFormatType)
     this.addTest("TestAddPrefixFunction__Failed", TestCase__Main_TestAddPrefixFunction__Failed)
     this.addTest("TestAddPrefixFunction__Passed", TestCase__Main_TestAddPrefixFunction__Passed)
+    this.addTest("TestComparesAssociativeArrays", TestCase__Main_TestComparesAssociativeArrays)
+    this.addTest("TestComparesArrays", TestCase__Main_TestComparesArrays)
 
     return this
 End Function
@@ -140,4 +142,26 @@ Function TestCase__Main_TestAddPrefixFunction__Passed() as string
     result = AddPrefixToAAItems(inputObject)
 
     return m.assertNotInvalid(result, "Input data is invalid. All values should be strings.")
+End Function
+
+'----------------------------------------------------------------
+' Compares two identical associative arrays
+'
+' @return An empty string if test is success or error message if not.
+'----------------------------------------------------------------
+Function TestCase__Main_TestComparesAssociativeArrays() as String
+    array = { key1: "key1", key2: "key2" }
+
+    return m.assertEqual(array, array)
+End Function
+
+'----------------------------------------------------------------
+' Compares two identical arrays
+'
+' @return An empty string if test is success or error message if not.
+'----------------------------------------------------------------
+Function TestCase__Main_TestComparesArrays() as String
+    array = ["one", "two"]
+
+    return m.assertEqual(array, array)
 End Function
