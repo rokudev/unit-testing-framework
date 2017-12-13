@@ -1,8 +1,8 @@
-# Unit Testing Framework (BETA)
-A beta tool for automating test suites for Roku channels.
+# Unit Testing Framework
+A tool for automating test suites for Roku channels.
 
 ### Scope
-The following beta framework allows developers to run unit tests and collect channel errors.
+The following framework allows developers to run unit tests and collect channel errors.
 
 #### Current Implementation
 Current implementation consists of Test Runner which collects all test cases and run them one by one, Base Test Suite contains assertion methods and Item Generator which allows to create different objects by given scheme.
