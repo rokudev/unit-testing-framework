@@ -2,8 +2,8 @@
 '* Roku Unit Testing Framework (BETA)
 '* A beta tool for automating test suites for Roku channels.
 '*
-'* Build Version: 1.2.1
-'* Build Date: 04/03/2017
+'* Build Version: 1.2.2
+'* Build Date: 12/13/2017
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
@@ -53,12 +53,14 @@ function BaseTestSuite()
 
     this = {}
     this.Name                           = "BaseTestSuite"
+    this.SKIP_TEST_MESSAGE_PREFIX		= "SKIP_TEST_MESSAGE_PREFIX__"
     'Test Cases methods
     this.testCases = []
     this.addTest                        = BTS__AddTest
     this.createTest                     = BTS__CreateTest
 
-    'Assertion methods which determine test failure
+    'Assertion methods which determine test failure or skipping
+    this.skip							= BTS__Skip
     this.fail                           = BTS__Fail
     this.assertFalse                    = BTS__AssertFalse
     this.assertTrue                     = BTS__AssertTrue
@@ -115,8 +117,21 @@ Function BTS__CreateTest(name as String, func as Object, setup = invalid as Obje
 End Function
 
 '----------------------------------------------------------------
-' Assertion methods which determine test failure
+' Assertion methods which determine test failure or skipping
 '----------------------------------------------------------------
+
+'----------------------------------------------------------------
+' Should be used to skip test cases. To skip test you must return the result of this method invocation.
+' 
+' @param message (string) Optional skip message.
+' Default value: "".
+'
+' @return A skip message, with a specific prefix added, in order to runner know that this test should be skipped.
+'----------------------------------------------------------------
+function BTS__Skip(message = "" as String) as String
+    ' add prefix so we know that this test is skipped, but not failed
+	return m.SKIP_TEST_MESSAGE_PREFIX + message
+end function
 
 '----------------------------------------------------------------
 ' Fail immediately, with the given message
@@ -591,8 +606,12 @@ End Function
 '
 ' @return True if values are equal or False in other case.
 '----------------------------------------------------------------
-Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic, comparator = m.baseComparator as Function) as Boolean
-    return comparator(value1, value2)
+Function BTS__EqValues(Value1 as dynamic, Value2 as dynamic, comparator = invalid as Object) as Boolean
+	if comparator = invalid
+		return m.baseComparator(value1, value2)
+	else
+		return comparator(value1, value2)
+	end if
 End Function
 
 '----------------------------------------------------------------
@@ -1031,7 +1050,7 @@ sub Logger__PrintStatistic(statObj as Object)
     end if
 
     ? "***"
-    ? "***   Total  = "; TF_Utils__AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Crashes  = "; statObj.Crash;
+    ? "***   Total  = "; TF_Utils__AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Skipped   = "; statObj.skipped; " ; Crashes  = "; statObj.Crash;
     ? " Time spent: "; statObj.Time; "ms"
     ? "***"
 
@@ -1050,6 +1069,7 @@ function Logger__CreateTotalStatistic() as Object
         Total       : 0
         Correct     : 0
         Fail        : 0
+        Skipped     : 0
         Crash       : 0
     }
 
@@ -1075,6 +1095,7 @@ function Logger__CreateSuiteStatistic(name as String) as Object
         Total   : 0
         Correct : 0
         Fail    : 0
+        Skipped : 0
         Crash   : 0
     }
 
@@ -1152,6 +1173,8 @@ sub Logger__AppendTestStatistic(statSuiteObj as Object, statTestObj as Object)
             statSuiteObj.Correct = statSuiteObj.Correct + 1
         else if lCase(statTestObj.result) = "fail"
             statSuiteObj.Fail = statSuiteObj.Fail + 1
+        else if lCase(statTestObj.result) = "skipped"
+            statSuiteObj.skipped++
         else
             statSuiteObj.crash = statSuiteObj.crash + 1
         end if
@@ -1188,6 +1211,10 @@ sub Logger__AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
         if TF_Utils__IsInteger(statSuiteObj.Fail)
             statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
         end if
+        
+        if TF_Utils__IsInteger(statSuiteObj.skipped)
+            statTotalObj.skipped += statSuiteObj.skipped
+        end if
 
         if TF_Utils__IsInteger(statSuiteObj.Crash)
             statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
@@ -1216,7 +1243,7 @@ sub Logger__PrintSuiteStatistic(statSuiteObj as Object)
     end if
 
     ? "==="
-    ? "===   Total  = "; TF_Utils__AsString(statSuiteObj.Total); " ; Passed  = "; statSuiteObj.Correct; " ; Failed   = "; statSuiteObj.Fail; " ; Crashes  = "; statSuiteObj.Crash;
+    ? "===   Total  = "; TF_Utils__AsString(statSuiteObj.Total); " ; Passed  = "; statSuiteObj.Correct; " ; Failed   = "; statSuiteObj.Fail; " ; Skipped   = "; statSuiteObj.skipped; " ; Crashes  = "; statSuiteObj.Crash;
     ? " Time spent: "; statSuiteObj.Time; "ms"
     ? "==="
 
@@ -1236,7 +1263,11 @@ sub Logger__PrintTestStatistic(statTestObj as Object)
     ? "---   Result:        "; statTestObj.Result
     ? "---   Time:          "; statTestObj.Time
 
-    if LCase(statTestObj.Result) <> "success"
+    if lCase(statTestObj.result) = "skipped"
+        if len(statTestObj.message) > 0
+            ? "---   Message: "; statTestObj.message
+        end if
+    else if LCase(statTestObj.Result) <> "success"
         ? "---   Error Code:    "; statTestObj.Error.Code
         ? "---   Error Message: "; statTestObj.Error.Message
     end if
@@ -1378,6 +1409,7 @@ function TestRunner() as Object
     this.logger = Logger()
 
     ' Internal properties
+    this.SKIP_TEST_MESSAGE_PREFIX = "SKIP_TEST_MESSAGE_PREFIX__"
     this.nodesTestDirectory = "pkg:/components/tests"
     if this.isNodeMode
         this.testsDirectory = this.nodesTestDirectory
@@ -1449,9 +1481,14 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
                 runResult = testSuite.testCase()
 
                 if runResult <> ""
-                    testStatObj.Result          = "Fail"
-                    testStatObj.Error.Code      = 1
-                    testStatObj.Error.Message   = runResult
+                    if instr(0, runResult, m.SKIP_TEST_MESSAGE_PREFIX) = 1
+                        testStatObj.result = "Skipped"
+                        testStatObj.message = runResult.mid(len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
+                    else
+                        testStatObj.Result          = "Fail"
+                        testStatObj.Error.Code      = 1
+                        testStatObj.Error.Message   = runResult
+                    end if
                 else
                     testStatObj.Result          = "Success"
                 end if
