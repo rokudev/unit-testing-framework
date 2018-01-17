@@ -1550,7 +1550,7 @@ end sub
 '----------------------------------------------------------------
 sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
     if testFilePrefix <> invalid
-        m.testFilePrefix = setTestFilePrefix
+        m.testFilePrefix = testFilePrefix
     end if
 end sub
 
