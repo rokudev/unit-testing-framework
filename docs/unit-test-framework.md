@@ -127,19 +127,58 @@ To run your unit tests, follow these instruction:
 
 Create new .brs files for each test suite. The default prefix for test suite files is “Test\__”. You can use any prefix you want just don’t forget to specify it in the next step. In this new file define a function TestSuite__Main().  This function will return the test suite object. Create a new test suite object from BaseTestSuite:
 
-_this = BaseTestSuite()_
+    this = BaseTestSuite()
 
 then set its name
 
-_this.Name = "MainTestSuite"_
+    this.Name = "MainTestSuite"
+
+***Optional***: Specify SetUp function for your TestSuite to do any actions before a tests from the suite will be executed:
+
+    this.SetUp = MainTestSuite__SetUp
+
+where MainTestSuite\__SetUp is function with your custom actions:
+
+    Sub MainTestSuite__SetUp()
+        ' Target testing object. To avoid the object creation in each test
+        ' we create instance of target object here and use it in tests as m.targetTestObject.
+        m.mainData  = GetApiArray()
+    End Sub
+
+***Optional***: Specify TearDown function for your TestSuite to do any actions after a tests from the suite has been executed:
+
+    this.TearDown = MainTestSuite__TearDown
+
+where MainTestSuite\__TearDown is function with your custom actions:
+
+    Sub MainTestSuite__TearDown()
+        ' Remove all the test data
+        m.Delete("mainData")
+    End Sub
 
 Then add test cases:
 
-this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount).
+    this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount).
+
 TestCase\__Main_CheckDataCount is a test function.
-Function TestCase__Main_CheckDataCount() as String
-return m.assertArrayCount(m.mainData, 15)
-End Function
+
+    Function TestCase__Main_CheckDataCount() as String
+        return m.assertArrayCount(m.mainData, 15)
+    End Function
+
+You could specify SetUp and TearDown functions for each TestCase passing a function names to *addTest* function as additional parameters:
+
+    this.addTest("CheckDataCount", TestCase__Main_CheckDataCount, TestCase__Main_CheckDataCount_Setup, TestCase__Main_CheckDataCount_TearDown)
+
+You could print some performance data from your test cases using StorePerformanceData function as shown below:
+
+    Function TestCase__Main_CheckDataCount() as String
+        ' do some calculations
+        memoryUsage = GetMemoryUsage()
+        m.StorePerformanceData("memory usage", memoryUsage)
+
+        return m.assertArrayCount(m.mainData, 15)
+    End Function
 
 3)	Run all your tests.
 
@@ -376,4 +415,3 @@ Here is shown what a test node for "MyNode" may look like:
 		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/> 
 	
 	</component>
-
