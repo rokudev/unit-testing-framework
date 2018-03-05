@@ -2,20 +2,20 @@
 '* Roku Unit Testing Framework (BETA)
 '* A beta tool for automating test suites for Roku channels.
 '*
-'* Build Version: 1.2.2
-'* Build Date: 12/13/2017
+'* Build Version: 1.3.0
+'* Build Date: 03/06/2018
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
 '*
 '*****************************************************************
 '*****************************************************************
-'* Copyright Roku 2011-2017
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 
 ' Functions in this file:
-'     
+'
 '     BaseTestSuite
 '     BTS__AddTest
 '     BTS__CreateTest
@@ -43,7 +43,7 @@
 '     BTS__EqAssocArray
 '     BTS__EqArray
 '     BTS__BaseComparator
-     
+
 '----------------------------------------------------------------
 ' Main function. Create BaseTestSuite object.
 '
@@ -53,14 +53,15 @@ function BaseTestSuite()
 
     this = {}
     this.Name                           = "BaseTestSuite"
-    this.SKIP_TEST_MESSAGE_PREFIX		= "SKIP_TEST_MESSAGE_PREFIX__"
+    this.SKIP_TEST_MESSAGE_PREFIX       = "SKIP_TEST_MESSAGE_PREFIX__"
     'Test Cases methods
     this.testCases = []
     this.addTest                        = BTS__AddTest
     this.createTest                     = BTS__CreateTest
+    this.StorePerformanceData           = BTS__StorePerformanceData
 
     'Assertion methods which determine test failure or skipping
-    this.skip							= BTS__Skip
+    this.skip                           = BTS__Skip
     this.fail                           = BTS__Fail
     this.assertFalse                    = BTS__AssertFalse
     this.assertTrue                     = BTS__AssertTrue
@@ -86,14 +87,14 @@ function BaseTestSuite()
     this.eqValues                       = BTS__EqValues
     this.eqAssocArrays                  = BTS__EqAssocArray
     this.eqArrays                       = BTS__EqArray
-    this.baseComparator                 = BTS__BaseComparator 
+    this.baseComparator                 = BTS__BaseComparator
 
     return this
 End Function
 
 '----------------------------------------------------------------
 ' Add a test to a suite's test cases array.
-' 
+'
 ' @param name (string) A test name.
 ' @param func (string) A test function name.
 '----------------------------------------------------------------
@@ -103,18 +104,37 @@ End Sub
 
 '----------------------------------------------------------------
 ' Create a test object.
-' 
+'
 ' @param name (string) A test name.
 ' @param func (string) A test function name.
 '----------------------------------------------------------------
 Function BTS__CreateTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object) as Object
     return {
-        Name: name 
+        Name: name
         Func: func
         SetUp: setup
         TearDown: teardown
+        perfData: {}
     }
 End Function
+
+'----------------------------------------------------------------
+' Store performance data to current test instance.
+'
+' @param name (string) A property name.
+' @param value (Object) A value of data.
+'----------------------------------------------------------------
+Sub BTS__StorePerformanceData(name as String, value as Object)
+    timestamp = StrI(CreateObject("roDateTime").AsSeconds())
+    m.testInstance.perfData.Append({
+        name: {
+            "value" : value
+            "timestamp": timestamp
+        }
+    })
+    ' print performance data to console
+    ? "PERF_DATA: " + m.testInstance.Name + ": " + timestamp + ": " + name + "|" + TF_Utils__AsString(value)
+End Sub
 
 '----------------------------------------------------------------
 ' Assertion methods which determine test failure or skipping
@@ -122,7 +142,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Should be used to skip test cases. To skip test you must return the result of this method invocation.
-' 
+'
 ' @param message (string) Optional skip message.
 ' Default value: "".
 '
@@ -135,7 +155,7 @@ end function
 
 '----------------------------------------------------------------
 ' Fail immediately, with the given message
-' 
+'
 ' @param msg (string) An error message.
 ' Default value: "Error".
 '
@@ -147,7 +167,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail the test if the expression is true.
-' 
+'
 ' @param expr (dynamic) An expression to evaluate.
 ' @param msg (string) An error message.
 ' Default value: "Expression evaluates to true"
@@ -163,7 +183,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail the test unless the expression is true.
-' 
+'
 ' @param expr (dynamic) An expression to evaluate.
 ' @param msg (string) An error message.
 ' Default value: "Expression evaluates to false"
@@ -179,7 +199,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the two objects are unequal as determined by the '<>' operator.
-' 
+'
 ' @param first (dynamic) A first object to compare.
 ' @param second (dynamic) A second object to compare.
 ' @param msg (string) An error message.
@@ -192,7 +212,7 @@ Function BTS__AssertEqual(first as dynamic, second as dynamic, msg = "" as strin
         if msg = ""
             first_as_string = TF_Utils__AsString(first)
             second_as_string = TF_Utils__AsString(second)
-            msg = first_as_string + " != " + second_as_string 
+            msg = first_as_string + " != " + second_as_string
         end if
         return msg
     end if
@@ -201,7 +221,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the two objects are equal as determined by the '=' operator.
-' 
+'
 ' @param first (dynamic) A first object to compare.
 ' @param second (dynamic) A second object to compare.
 ' @param msg (string) An error message.
@@ -214,7 +234,7 @@ Function BTS__AssertNotEqual(first as dynamic, second as dynamic, msg = "" as st
         if msg = ""
             first_as_string = TF_Utils__AsString(first)
             second_as_string = TF_Utils__AsString(second)
-            msg = first_as_string + " == " + second_as_string 
+            msg = first_as_string + " == " + second_as_string
         end if
         return msg
     end if
@@ -223,7 +243,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the value is not invalid.
-' 
+'
 ' @param value (dynamic) A value to check.
 ' @param msg (string) An error message.
 ' Default value: ""
@@ -243,7 +263,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the value is invalid.
-' 
+'
 ' @param value (dynamic) A value to check.
 ' @param msg (string) An error message.
 ' Default value: ""
@@ -263,7 +283,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array doesn't have the key.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param key (string) A key name.
 ' @param msg (string) An error message.
@@ -288,7 +308,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array has the key.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param key (string) A key name.
 ' @param msg (string) An error message.
@@ -313,7 +333,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array doesn't have the keys list.
-' 
+'
 ' @param array (dynamic) A target associative array.
 ' @param keys (object) A key names array.
 ' @param msg (string) An error message.
@@ -340,7 +360,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array has the keys list.
-' 
+'
 ' @param array (dynamic) A target associative array.
 ' @param keys (object) A key names array.
 ' @param msg (string) An error message.
@@ -367,7 +387,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array doesn't have the item.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param value (dynamic) A value to check.
 ' @param key (object) A key name for associative array.
@@ -391,7 +411,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array has the item.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param value (dynamic) A value to check.
 ' @param key (object) A key name for associative array.
@@ -415,7 +435,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array doesn't have the item subset.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param subset (dynamic) An items array to check.
 ' @param msg (string) An error message.
@@ -447,7 +467,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array have the item from subset.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param subset (dynamic) A items array to check.
 ' @param msg (string) An error message.
@@ -479,7 +499,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array items count <> expected count
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param count (integer) An expected array items count.
 ' @param msg (string) An error message.
@@ -502,7 +522,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array items count = expected count.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param count (integer) An expected array items count.
 ' @param msg (string) An error message.
@@ -525,7 +545,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the item is not empty array or string.
-' 
+'
 ' @param item (dynamic) An array or string to check.
 ' @param msg (string) An error message.
 ' Default value: ""
@@ -547,7 +567,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the item is empty array or string.
-' 
+'
 ' @param item (dynamic) An array or string to check.
 ' @param msg (string) An error message.
 ' Default value: ""
@@ -569,7 +589,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Fail if the array doesn't contains items of specific type only.
-' 
+'
 ' @param array (dynamic) A target array.
 ' @param typeStr (string) An items type name.
 ' @param msg (string) An error message.
@@ -584,7 +604,7 @@ Function BTS__AssertArrayContainsOnly(array as dynamic, typeStr as string, msg =
             if not methodName(item)
                 msg = TF_Utils__AsString(item) + "is not a '" + typeStr + "' type."
                 return msg
-            end if    
+            end if
         end for
     else
         msg = "Input value is not an Array."
@@ -599,7 +619,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Compare two arbitrary values to each other.
-' 
+'
 ' @param Value1 (dynamic) A first item to compare.
 ' @param Value2 (dynamic) A second item to compare.
 ' @param comparator (Function, optional) Function, to compare 2 values. Should take in 2 parameters and return either true or false.
@@ -616,7 +636,7 @@ End Function
 
 '----------------------------------------------------------------
 ' Base comparator for comparing two values.
-' 
+'
 ' @param Value1 (dynamic) A first item to compare.
 ' @param Value2 (dynamic) A second item to compare.
 '
@@ -624,7 +644,7 @@ End Function
 function BTS__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boolean
     value1Type = type(value1)
     value2Type = type(value2)
-    
+
     if (value1Type = "roList" or value1Type = "roArray") and (value2Type = "roList" or value2Type = "roArray")
         return m.eqArrays(value1, value2)
     else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
@@ -636,16 +656,16 @@ end function
 
 '----------------------------------------------------------------
 ' Compare two roAssociativeArray objects for equality.
-' 
+'
 ' @param Value1 (object) A first associative array.
 ' @param Value2 (object) A second associative array.
-' 
+'
 ' @return True if arrays are equal or False in other case.
 '----------------------------------------------------------------
 Function BTS__EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
     l1 = Value1.Count()
     l2 = Value2.Count()
-    
+
     if not l1 = l2
         return False
     else
@@ -662,20 +682,20 @@ Function BTS__EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
         end for
         return True
     end if
-End Function 
+End Function
 
 '----------------------------------------------------------------
 ' Compare two roArray objects for equality.
-' 
+'
 ' @param Value1 (object) A first array.
 ' @param Value2 (object) A second array.
-' 
+'
 ' @return True if arrays are equal or False in other case.
 '----------------------------------------------------------------
 Function BTS__EqArray(Value1 as Object, Value2 as Object) as Boolean
     l1 = Value1.Count()
     l2 = Value2.Count()
-    
+
     if not l1 = l2
         return False
     else
@@ -688,8 +708,9 @@ Function BTS__EqArray(Value1 as Object, Value2 as Object) as Boolean
         end for
         return True
     end if
-End Function'*****************************************************************
-'* Copyright Roku 2011-2017
+End Function
+'*****************************************************************
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 
@@ -708,20 +729,20 @@ End Function'*****************************************************************
 '----------------------------------------------------------------
 ' Main function to generate object according to specified scheme.
 '
-' @param scheme (object) A scheme with desired object structure. Can be 
-' any simple type, array of types or associative array in form 
+' @param scheme (object) A scheme with desired object structure. Can be
+' any simple type, array of types or associative array in form
 '     { propertyName1 : "propertyType1"
 '       propertyName2 : "propertyType2"
 '       ...
 '       propertyNameN : "propertyTypeN" }
 '
-' @return An object according to specified scheme or invalid, 
+' @return An object according to specified scheme or invalid,
 ' if scheme is not valid.
 '----------------------------------------------------------------
 Function ItemGenerator(scheme as object) as Object
-    
+
     this = {}
-    
+
     this.getItem        = IG_GetItem
     this.getAssocArray  = IG_GetAssocArray
     this.getArray       = IG_GetArray
@@ -730,11 +751,11 @@ Function ItemGenerator(scheme as object) as Object
     this.getFloat       = IG_GetFloat
     this.getString      = IG_GetString
     this.getBoolean     = IG_GetBoolean
-    
+
     if not TF_Utils__IsValid(scheme)
         return invalid
     end if
-    
+
     return this.getItem(scheme)
 End Function
 
@@ -743,33 +764,33 @@ End Function
 '----------------------------------------------------------------
 ' Generate object according to specified scheme.
 '
-' @param scheme (object) A scheme with desired object structure. 
+' @param scheme (object) A scheme with desired object structure.
 ' Can be any simple type, array of types or associative array.
 '
-' @return An object according to specified scheme or invalid,  
-' if scheme is not one of simple type, array or 
+' @return An object according to specified scheme or invalid,
+' if scheme is not one of simple type, array or
 ' associative array.
 '----------------------------------------------------------------
 Function IG_GetItem(scheme as object) as object
-    
+
     item = invalid
-    
+
     if TF_Utils__IsAssociativeArray(scheme)
         item = m.getAssocArray(scheme)
     else if TF_Utils__IsArray(scheme)
         item = m.getArray(scheme)
-    else if TF_Utils__IsString(scheme) 
+    else if TF_Utils__IsString(scheme)
         item = m.getSimpleType(lCase(scheme))
-    end if    
-    
+    end if
+
     return item
 End Function
 
 '----------------------------------------------------------------
 ' Generates associative array according to specified scheme.
 '
-' @param scheme (object) An associative array with desired 
-'    object structure in form 
+' @param scheme (object) An associative array with desired
+'    object structure in form
 '     { propertyName1 : "propertyType1"
 '       propertyName2 : "propertyType2"
 '       ...
@@ -778,47 +799,47 @@ End Function
 ' @return An associative array according to specified scheme.
 '----------------------------------------------------------------
 Function IG_GetAssocArray(scheme as object) as object
-    
+
     item = {}
-    
+
     for each key in scheme
         if not item.DoesExist(key)
             item[key] = m.getItem(scheme[key])
         end if
     end for
-    
+
     return item
 End Function
 
 '----------------------------------------------------------------
 ' Generates array according to specified scheme.
 '
-' @param scheme (object) An array with desired object types. 
+' @param scheme (object) An array with desired object types.
 '
 ' @return An array according to specified scheme.
 '----------------------------------------------------------------
 Function IG_GetArray(scheme as object) as object
-    
+
     item = []
-    
+
     for each key in scheme
         item.Push(m.getItem(key))
     end for
-    
+
     return item
 End Function
 
 '----------------------------------------------------------------
 ' Generates random value of specified type.
 '
-' @param typeStr (string) A name of desired object type. 
+' @param typeStr (string) A name of desired object type.
 '
 ' @return A simple type object or invalid if type is not supported.
 '----------------------------------------------------------------
 Function IG_GetSimpleType(typeStr as string) as object
-    
+
     item = invalid
-    
+
     if typeStr = "integer" or typeStr = "int" or typeStr = "roint"
         item = m.getInteger()
     else if typeStr = "float" or typeStr = "rofloat"
@@ -828,7 +849,7 @@ Function IG_GetSimpleType(typeStr as string) as object
     else if typeStr = "boolean" or typeStr = "roboolean"
         item = m.getBoolean()
     end if
-    
+
     return item
 End Function
 
@@ -844,7 +865,7 @@ End Function
 '----------------------------------------------------------------
 ' Generates random integer value from 1 to specified seed value.
 '
-' @param seed (integer) A seed value for Rnd function. 
+' @param seed (integer) A seed value for Rnd function.
 ' Default value: 100.
 '
 ' @return A random integer value.
@@ -870,14 +891,14 @@ End Function
 ' @return A random string value or empty string if seed is 0.
 '----------------------------------------------------------------
 Function IG_GetString(seed as integer) as string
-    
+
     item = ""
     if seed > 0
         stringLength = Rnd(seed)
-        
+
         for i = 0 to stringLength
             chType = Rnd(3)
-            
+
             if chType = 1       'Chr(48-57) - numbers
                 chNumber = 47 + Rnd(10)
             else if chType = 2  'Chr(65-90) - Uppercase Letters
@@ -885,14 +906,15 @@ Function IG_GetString(seed as integer) as string
             else                'Chr(97-122) - Lowercase Letters
                 chNumber = 96 + Rnd(26)
             end if
-            
+
             item = item + Chr(chNumber)
         end for
     end if
-    
+
     return item
-End Function'*****************************************************************
-'* Copyright Roku 2011-2017
+End Function
+'*****************************************************************
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 
@@ -973,7 +995,7 @@ end function
 
 '----------------------------------------------------------------
 ' Set logging verbosity parameter.
-' 
+'
 ' @param verbosity (integer) A verbosity level.
 ' Posible values:
 '     0 - basic
@@ -990,7 +1012,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Set logging echo parameter.
-' 
+'
 ' @param enable (boolean) A echo trigger.
 ' Posible values: true or false
 ' Default value: false
@@ -1001,7 +1023,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Set storage server URL parameter.
-' 
+'
 ' @param url (string) A storage server URL.
 ' Default level: invalid
 '----------------------------------------------------------------
@@ -1013,7 +1035,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Set storage server URL parameter.
-' 
+'
 ' @param url (string) A storage server URL.
 ' Default level: invalid
 '----------------------------------------------------------------
@@ -1025,7 +1047,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Print statistic object with specified verbosity.
-' 
+'
 ' @param statObj (object) A statistic object to print.
 '----------------------------------------------------------------
 sub Logger__PrintStatistic(statObj as Object)
@@ -1138,6 +1160,7 @@ function Logger__CreateTestStatistic(name as String, result = "Success" as Strin
         Name    : name
         Result  : result
         Time    : time
+        PerfData: {}
         Error   : {
             Code    : errorCode
             Message : errorMessage
@@ -1211,7 +1234,7 @@ sub Logger__AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
         if TF_Utils__IsInteger(statSuiteObj.Fail)
             statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
         end if
-        
+
         if TF_Utils__IsInteger(statSuiteObj.skipped)
             statTotalObj.skipped += statSuiteObj.skipped
         end if
@@ -1230,7 +1253,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test suite statistic.
-' 
+'
 ' @param statSuiteObj (object) A target test suite object to print.
 '----------------------------------------------------------------
 sub Logger__PrintSuiteStatistic(statSuiteObj as Object)
@@ -1252,7 +1275,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test statistic.
-' 
+'
 ' @param statTestObj (object) A target test object to print.
 '----------------------------------------------------------------
 sub Logger__PrintTestStatistic(statTestObj as Object)
@@ -1377,7 +1400,7 @@ sub Logger__PrintTestTearDown(tName as String)
     end if
 end sub
 '*****************************************************************
-'* Copyright Roku 2011-2017
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 
@@ -1443,11 +1466,11 @@ end function
 
 '----------------------------------------------------------------
 ' Run main test loop.
-' 
+'
 ' @param statObj (object, optional) statistic object to be used in tests
 ' @param testSuiteNamesList (array, optional) array of test suite function names to be used in tests
 '
-' @return Statistic object if run in node mode, invalid otherwise 
+' @return Statistic object if run in node mode, invalid otherwise
 '----------------------------------------------------------------
 function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, testSuiteNamesList = [] as Object) as Object
     alltestCount = 0
@@ -1523,7 +1546,7 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
         return totalStatObj
     else
         testNodes = m.getTestNodesList()
-        
+
         for each testNodeName in testNodes
             testNode = createObject("roSGNode", testNodeName)
             if testNode <> invalid
@@ -1531,7 +1554,7 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
                 totalStatObj = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
             end if
         end for
-        
+
         m.logger.PrintStatistic(totalStatObj)
     end if
 end function
@@ -1550,7 +1573,7 @@ end sub
 '----------------------------------------------------------------
 sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
     if testFilePrefix <> invalid
-        m.testFilePrefix = setTestFilePrefix
+        m.testFilePrefix = testFilePrefix
     end if
 end sub
 
@@ -1597,12 +1620,12 @@ end sub
 '----------------------------------------------------------------
 function TestRunner__GetTestSuitesList(testSuiteNamesList = [] as Object) as Object
     result = []
-    
+
     if testSuiteNamesList.count() > 0
         for each functionName in testSuiteNamesList
             eval("testSuite=" + functionName)
             testSuite = testSuite()
-            
+
             if TF_Utils__IsAssociativeArray(testSuite)
                 result.Push(testSuite)
             end if
@@ -1610,14 +1633,14 @@ function TestRunner__GetTestSuitesList(testSuiteNamesList = [] as Object) as Obj
 	else
 	    testSuiteRegex = CreateObject("roRegex", "^(function|sub)\s(" + m.testSuitePrefix + m.testSuiteName + "[0-9a-z\_]*)\s*\(", "i")
 	    testFilesList = m.GetTestFilesList()
-	
+
 	    for each filePath in testFilesList
 	        code = TF_Utils__AsString(ReadAsciiFile(filePath))
-	
+
 	        if code <> ""
 	            for each line in code.Tokenize(chr(10))
 	                line.Trim()
-	
+
 	                if testSuiteRegex.IsMatch(line)
 	                    testSuite = invalid
 	                    functionName = testSuiteRegex.Match(line).Peek()
@@ -1747,7 +1770,7 @@ function TestFramework__RunNodeTests(params as Object) as Object
     return Runner.RUN(statObj, testSuiteNamesList)
 end function
 '*****************************************************************
-'* Copyright Roku 2011-2017
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 ' Common framework utility functions
@@ -1908,7 +1931,7 @@ function TF_Utils__ValidStr(obj as Object) as String
     else
         return ""
     end if
-end function 
+end function
 
 '*************************************************
 ' TF_Utils__AsString - convert input to String if this possible, else return empty string
