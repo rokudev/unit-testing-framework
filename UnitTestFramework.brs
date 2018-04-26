@@ -1036,12 +1036,33 @@ end sub
 '----------------------------------------------------------------
 ' Set storage server URL parameter.
 '
-' @param url (string) A storage server URL.
+' @param url (string) host for url.
+' @param port (string) port for url.
+' Default level: invalid
+'----------------------------------------------------------------
+sub Logger__SetServer(host = invalid as String, port = invalid as String)
+    if host <> invalid
+        if port <> invalid
+          m.serverURL = "http://" + host + ":" + port
+        else
+          m.serverURL = "http://" + host
+        end if
+    end if
+end sub
+
+'----------------------------------------------------------------
+' Send test results as a POST json payload.
+'
+' @param statObj (object) stats of the test run.
 ' Default level: invalid
 '----------------------------------------------------------------
 sub Logger__SendToServer(statObj as Object)
     if m.serverURL <> invalid
-        ' Send log file to server
+      ? "Sending statsObj to server: "; m.serverURL
+      request = CreateObject("roUrlTransfer")
+      request.SetUrl(m.serverURL)
+      statString = FormatJson(statObj)
+      ? "Response: "; request.postFromString(statString)    
     end if
 end sub
 
@@ -1476,7 +1497,6 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
     alltestCount = 0
     totalStatObj = statObj
     testSuitesList = m.GetTestSuitesList(testSuiteNamesList)
-
     for each testSuite in testSuitesList
         testCases = testSuite.testCases
         testCount = testCases.Count()
@@ -1557,6 +1577,7 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
 
         m.logger.PrintStatistic(totalStatObj)
     end if
+    m.logger.SendToServer(totalStatObj)
 end function
 
 '----------------------------------------------------------------
