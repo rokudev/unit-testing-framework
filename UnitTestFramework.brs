@@ -966,6 +966,7 @@ function Logger() as Object
     ' Interface
     this.SetVerbosity           = Logger__SetVerbosity
     this.SetEcho                = Logger__SetEcho
+    this.SetServer              = Logger__SetServer
     this.SetServerURL           = Logger__SetServerURL
     this.PrintStatistic         = Logger__PrintStatistic
     this.SendToServer           = Logger__SendToServer
@@ -1062,7 +1063,7 @@ sub Logger__SendToServer(statObj as Object)
       request = CreateObject("roUrlTransfer")
       request.SetUrl(m.serverURL)
       statString = FormatJson(statObj)
-      ? "Response: "; request.postFromString(statString)    
+      ? "Response: "; request.postFromString(statString)
     end if
 end sub
 
