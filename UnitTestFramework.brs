@@ -359,6 +359,33 @@ Function BTS__AssertAAHasKeys(array as dynamic, keys as object, msg = "" as stri
 End Function
 
 '----------------------------------------------------------------
+' Fail if the AA doesn't contain equal values
+'
+' @param expected (object) AA with expected key:value's.
+' @param actual (object) AA to test against.
+' @param msg (string) An error message.
+' Default value: ""
+'
+' @return An error message.
+'----------------------------------------------------------------
+Function BTS__AssertAAContains(expected as object, actual as object, msg = "" as string) as string
+    if TF_Utils__IsAssociativeArray(expected) and TF_Utils__IsAssociativeArray(actual)
+        for each key in expected
+            if not actual[key] = expected[key]
+                if msg = ""
+                    msg = "AssociativeArray doesn't contain '" + key + ":" + expected[key] + "'"
+                end if
+            return msg
+            end if
+        end for
+    else
+        msg = "Input value is not an Associative Array."
+        return msg
+    end if
+    return ""
+End Function
+
+'----------------------------------------------------------------
 ' Fail if the array has the keys list.
 '
 ' @param array (dynamic) A target associative array.
