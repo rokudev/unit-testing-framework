@@ -1525,6 +1525,7 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
                 end if
 
                 if testStatObj.Result = "Fail" and m.failFast
+                    suiteStatObj.Result = "Fail"
                     exit for
                 end if
             end if
@@ -1537,7 +1538,7 @@ function TestRunner__Run(statObj = m.logger.CreateTotalStatistic() as Object, te
             testSuite.TearDown()
         end if
 
-        if testStatObj.Result = "Fail" and m.failFast
+        if suiteStatObj.Result = "Fail" and m.failFast
             exit for
         end if
     end for
