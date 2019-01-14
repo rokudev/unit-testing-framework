@@ -1,5 +1,24 @@
 # **Roku Unit Testing Framework**
 
+## v.2.0.0
+
+### Features
+ * Major Version Update: NOT Backward compatible!
+ * Add environment object to each test suite, so each test suite will have it's own m. 
+ * Remove need for test suite constructor function
+ * Add BeforeALL, BeforeEach, AfterAll, AfterEach and other JUnit5-like annotations.
+ * Add new assert functions
+ * Update test suite parsing mechanism (removed eval usage)
+ * Add annotation @Test
+ * Add don't throw exception for empty test suites: PR #31
+ * Add AssertAAContains: PR #26
+ * Add SetServer and SendToServer: PR #25
+ 
+### Bug Fixes
+ * Fix issue #27 crash when testStatObj is undefined because of no test valid test cases
+ * FIx issue #30 Exception when testStatObj is uninitialized 
+ * Minor bug-fixes and updates.
+ 
 ## v.1.3.0
 
 ### Features
