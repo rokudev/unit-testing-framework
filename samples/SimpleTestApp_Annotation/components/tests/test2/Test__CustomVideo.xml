@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<!--********** Copyright 2016 Roku Corp.  All Rights Reserved. **********-->
+
+<!-- Test node should extend tested node -->
+<component name="Test__CustomVideo" extends="CustomVideoNode" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+	
+<!-- 	Function, used by framework, to run tests. Should not be called manually! -->
+	<interface>
+		<function name="TestFramework__RunNodeTests"/>
+	</interface>
+<!--     Import test suites. -->
+    <script type="text/brightscript" uri="pkg:/components/tests/test2/Test__CustomVideo__SampleRSGTestSuite.brs" />
+<!--     Import test framework. -->
+    <script type="text/brightscript" uri="pkg:/source/testFramework/UnitTestFramework.brs"/>
+    
+</component>

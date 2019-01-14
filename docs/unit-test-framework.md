@@ -55,7 +55,6 @@ A collection of one or more test cases is called a test suite.  Developers can i
 | AssertArrayNotCount | array (dynamic) A target array. count (integer) An expected array items count.     |    Fail if the array item count is equal to the specified value. |
 | AssertEmpty | item (dynamic) An array or string to check.      |    Fail if the item is not empty. |
 | AssertNotEmpty | item (dynamic) An array or string to check.      |    Fail if the item is empty. |
-| AssertArrayContainsOnly | array (dynamic) A target array. typeStr (string) An item’s type name.     |    Fail if the array contains items of types other than the specified type. |
 
 ### Item Generator
 
@@ -183,13 +182,30 @@ You could print some performance data from your test cases using StorePerformanc
 3)	Run all your tests.
 
 To run your tests:
-* create instance of TestRunner object (Runner = TestRunner()) and call it’s method Run (Runner.Run()). Embrace this code with such if statement – “args.RunTests = "true" and type(TestRunner) = "Function"”.
-* If needed set TestRunner’s properties by calling its setter methods before calling Run method.
+* Create instance of TestRunner object (Runner = TestRunner()) and call it’s method Run (Runner.Run()). Embrace this code with such if statement – “args.RunTests = "true" and type(TestRunner) = "Function"”.
+* Define all test suite functions using SetFunctions method (Runner.SetFunctions([SuiteFunction1, SuiteFunction2])).
+* If needed set TestRunner’s properties by calling it's setter methods before calling Run method.
 * Deploy your channel to the device
 * POST the following command to the device via ECP:
 http://{Roku_box_IP_address}:8060/launch/dev?RunTests=true
 * View the test results by opening a telnet console on the device on port 8085:
 telnet {Roku box IP address} 8085.
+
+
+    if APPInfo.IsDev() and args.RunTests = "true" and TF_Utils__IsFunction(TestRunner) then
+        Runner = TestRunner()
+    
+        Runner.SetFunctions([
+            TestSuite
+        ])
+  
+        Runner.Logger.SetVerbosity(3)
+        Runner.Logger.SetEcho(false)
+        Runner.Logger.SetJUnit(false)
+        Runner.SetFailFast(true)
+        
+        Runner.RUN()
+    end if
 
 To set verbosity level call Runner.logger.SetVerbosity(level). There are four verbosity levels in this framework:
 * “0” – basic level
@@ -229,7 +245,19 @@ If you want to test RSG nodes you should:
 
 2)	Create test suite files in "tests" folder or subfolders.
 
-Create new .xml file for each node you want to test. This .xml file should be a node and it must extend the node you want to test. The default prefix for test nodes is "Test\__". You can use any prefix you want just don’t forget to specify it. File name must match node name. For each node you may create as many test suites as you wish. Details on how to create test suites you can find in the previous section. The only difference is that every test suite should have following prefix: TEST\_FILE\_PREFIX + NODE\_NAME + "\__" + TEST\_SUITE\_NAME, where default TEST\_FILE\_PREFIX is "Test\__", NODE\_NAME may be "MyNode" and TEST\_SUITE\_NAME can be "TestSuite1". So the name of a test suite file may look like this: "Test\__MyNode\__TestSuite1". In every test node (.xml file) you should:
+Create new .xml file for each node you want to test. This .xml file should be a node and it must extend the node you want to test. The default prefix for test nodes is "Test\__". You can use any prefix you want just don’t forget to specify it. File name must match node name. For each node you may create as many test suites as you wish. Details on how to create test suites you can find in the previous section. The only difference is that every test suite should have following prefix: TEST\_FILE\_PREFIX + NODE\_NAME + "\__" + TEST\_SUITE\_NAME, where default TEST\_FILE\_PREFIX is "Test\__", NODE\_NAME may be "MyNode" and TEST\_SUITE\_NAME can be "TestSuite1". So the name of a test suite file may look like this: "Test\__MyNode\__TestSuite1". 
+Create additional Init.brs file with Init functions and define all test suites from previous files using SetFunctions method: 
+
+    sub init()
+        Runner = TestRunner()
+    
+        Runner.SetFunctions([
+            TestSuite__MyNode__TestSuite1
+            TestSuite__MyNode__TestSuite2
+        ])
+    end sub
+
+In every test node (.xml file) you should:
 * Add interface function for running tests. This function will be used by framework and must not be addressed in any other way:
 
 		<interface>
@@ -240,27 +268,82 @@ Create new .xml file for each node you want to test. This .xml file should be a 
 
 		<script type="text/brightscript" uri="pkg:/source/testFramework/UnitTestFramework.brs"/>
 
+* Import Init.brs associated with this node.
+
+        <script type="text/brightscript" uri="pkg:/components/tests/Init.brs"/>
+
 * Import all the test suites, associated with this node.
-		
+
 		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite1.brs"/>
 		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/>
 
 Note that if you want to test RSG nodes, you must run tests only after screen is shown. If you had previously set up test runner, move it below screen showing statement.
-    
+
     m.screen.show()
     if runUnitTests
 	    runner = TestRunner()
 	    runner.run()
     end if
 
+### Annotations
+
+Alternatively you could use the following annotations to specify your test cases and setup/teardown functions.
+
+**' @Test** - A test case function.
+
+    ' @Test
+    sub YourTestCaseName()
+        ' access pre created data from setup function
+        ? m.testinstance.testData
+        
+        result = DoSomeWork()
+        UTF_assertNotInvalid(result)
+    end sub
+
+**' @BeforeAll** - A setup function that should be called before all test cases in suite.
+
+    ' @BeforeAll
+    sub ThisFunctionShouldBeCalledBeforeAllTestsInSuite()
+        m.testData = {
+            "test": "someValue"
+        }
+    end sub
+
+**' @AfterAll** - A teardown function that should be called after all test cases in suite.
+
+    ' @AfterAll
+    sub ThisFunctionShouldBeCalledAfterAllTests()
+        m.Delete("testData")
+    end sub
+
+**' @ParameterizedTest** - A parametrized test case. Should always be followed by **' @MethodSource("parametersProviderFunctionName")**. The parameter provider function should return an array of parameters. The parametrized test case will be called for each parameter individually.
+
+    function stringProvider()
+        return ["foo", "bar", 1, 0, {}]
+    end function
+
+    ' @ParameterizedTest
+    ' @MethodSource("stringProvider")
+    sub testWithSimpleMethodSource(argument = invalid as Dynamic)
+        UTF_assertNotInvalid(argument)
+    end sub
+
+**' @RepeatedTest(count)** - A repeated test case. The test case will be called a 'count' times.
+
+    ' @RepeatedTest(3)
+    sub RepeatTestCase()
+        result = DoSomeWork()
+        UTF_assertNotInvalid(result)
+    end sub
+
 ##	Example
 
 
-Here is an example test suite:
+Here is an example test suite. For more examples please check a 'samples' folder.
 
 ```
 '*****************************************************************
-'* Copyright Roku 2011-2016
+'* Copyright Roku 2011-2018
 '* All Rights Reserved
 '*****************************************************************
 
@@ -401,17 +484,18 @@ End Function```
 Here is shown what a test node for "MyNode" may look like:
 
 	<?xml version="1.0" encoding="UTF-8"?>
-	<!--********** Copyright 2017 Roku Corp.  All Rights Reserved. **********-->
-	
+	<!--********** Copyright 2018 Roku Corp.  All Rights Reserved. **********-->
+
 	<component name="Test__MyNode" extends="MyNode" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
-	
+
 		<interface>
 			<function name="TestFramework__RunNodeTests"/>
 		</interface>
-	    
+
 		<script type="text/brightscript" uri="pkg:/source/testFramework/UnitTestFramework.brs"/>
-		
+
+		<script type="text/brightscript" uri="pkg:/components/tests/Init.brs"/>
 		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite1.brs"/>
-		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/> 
-	
+		<script type="text/brightscript" uri="pkg:/components/tests/Test__MyNode__TestSuite2.brs"/>
+
 	</component>
