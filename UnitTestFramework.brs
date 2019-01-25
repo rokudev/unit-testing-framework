@@ -2,8 +2,8 @@
 '* Roku Unit Testing Framework
 '* Automating test suites for Roku channels.
 '*
-'* Build Version: 2.0.0
-'* Build Date: 01/14/2019
+'* Build Version: 2.0.1
+'* Build Date: 01/24/2019
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
@@ -1681,9 +1681,19 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
             testNode = CreateObject("roSGNode", testNodeName)
             if testNode <> invalid
                 testSuiteNamesList = m.GetTestSuiteNamesList(testNodeName)
-                tmp = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
-                if tmp <> invalid then
-                    totalStatObj = tmp
+                if CreateObject("roSGScreen").CreateScene(testNodeName) <> invalid
+                    ? "WARNING: Test cases cannot be runned in main scene."
+                    for each testSuiteName in testSuiteNamesList
+                        suiteStatObj = m.Logger.CreateSuiteStatistic(testSuiteName)
+                        suiteStatObj.fail = 1
+                        suiteStatObj.total = 1
+                        m.Logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
+                    end for
+                else
+                    tmp = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
+                    if tmp <> invalid then
+                        totalStatObj = tmp
+                    end if
                 end if
             end if
         end for

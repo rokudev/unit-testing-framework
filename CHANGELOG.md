@@ -1,5 +1,12 @@
 # **Roku Unit Testing Framework**
-> 01.14.2019
+> 01.24.2019
+
+## v.2.0.1
+
+### Bug Fixes
+
+ * Fix bug with scene node verification.
+ * Minor bug-fixes and updates.
 
 ## v.2.0.0
 
@@ -14,12 +21,13 @@
  * Add don't throw exception for empty test suites: PR #31
  * Add AssertAAContains: PR #26
  * Add SetServer and SendToServer: PR #25
- 
+
 ### Bug Fixes
- * Fix issue #27 crash when testStatObj is undefined because of no test valid test cases
- * FIx issue #30 Exception when testStatObj is uninitialized 
+
+ * Fix crash when testStatObj is undefined because of no test valid test cases
+ * FIx Exception when testStatObj is uninitialized
  * Minor bug-fixes and updates.
- 
+
 ## v.1.3.0
 
 ### Features
