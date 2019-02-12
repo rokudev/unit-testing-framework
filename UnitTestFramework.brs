@@ -2673,7 +2673,7 @@ function TF_Utils__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boole
         return TF_Utils__EqArray(value1, value2)
     else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
         return TF_Utils__EqAssocArray(value1, value2)
-    else if Type(box(value1)) = Type(box(value2))
+    else if Type(Box(value1), 3) = Type(Box(value2), 3)
         return value1 = value2
     else
         return false
