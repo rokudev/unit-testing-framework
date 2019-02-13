@@ -1727,7 +1727,7 @@ end sub
 ' Set setTestFilePrefix property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
-    m.testFilePrefix = setTestFilePrefix
+    m.testFilePrefix = testFilePrefix
 end sub
 
 ' ----------------------------------------------------------------
