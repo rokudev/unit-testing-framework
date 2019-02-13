@@ -1720,45 +1720,35 @@ end function
 ' Set testsDirectory property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestsDirectory(testsDirectory as String)
-    if testsDirectory <> invalid
-        m.testsDirectory = testsDirectory
-    end if
+    m.testsDirectory = testsDirectory
 end sub
 
 ' ----------------------------------------------------------------
 ' Set setTestFilePrefix property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
-    if testFilePrefix <> invalid
-        m.testFilePrefix = setTestFilePrefix
-    end if
+    m.testFilePrefix = setTestFilePrefix
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testSuitePrefix property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestSuitePrefix(testSuitePrefix as String)
-    if testSuitePrefix <> invalid
-        m.testSuitePrefix = testSuitePrefix
-    end if
+    m.testSuitePrefix = testSuitePrefix
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testSuiteName property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestSuiteName(testSuiteName as String)
-    if testSuiteName <> invalid
-        m.testSuiteName = testSuiteName
-    end if
+    m.testSuiteName = testSuiteName
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testCaseName property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestCaseName(testCaseName as String)
-    if testCaseName <> invalid
-        m.testCaseName = testCaseName
-    end if
+    m.testCaseName = testCaseName
 end sub
 
 ' ----------------------------------------------------------------
