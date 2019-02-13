@@ -1690,7 +1690,8 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
                         m.Logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
                     end for
                 else
-                    tmp = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
+                    params = [totalStatObj, testSuiteNamesList, m.testSuiteName, m.testCaseName]
+                    tmp = testNode.callFunc("TestFramework__RunNodeTests", params)
                     if tmp <> invalid then
                         totalStatObj = tmp
                     end if
@@ -2192,8 +2193,13 @@ end function
 function TestFramework__RunNodeTests(params as Object) as Object
     statObj = params[0]
     testSuiteNamesList = params[1]
+    testSuiteName = params[2]
+    testCaseName = params[3]
 
     Runner = TestRunner()
+    Runner.SetTestSuiteName(testSuiteName)
+    Runner.SetTestCaseName(testCaseName)
+
     return Runner.Run(statObj, testSuiteNamesList)
 end function
 function UTF_skip(msg = "")
