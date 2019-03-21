@@ -111,80 +111,99 @@ For example:
 
 The Logger object is used to output test results. It takes information from a TestRunner, formats it according to selected verbosity level and outputs to the console. TestRunner calls printStatistic function to print logs. This method has one argument which is a statistic object. The printStatistic function can be overwritten to generate custom log output.
 
+### Annotations
+
+We support some annotations for building unit tests functions.
+
+It's based on JUnit 5 annotations approach
+
+See [JUnit guide ](https://junit.org/junit5/docs/current/user-guide/)
+
+
+For now we support
+
+* @Test - describes this is a test
+* @BeforeAll - function to run before all functions
+* @BeforeEach - function to run before each test execution
+* @AfterAll - function that will run after all tests in test suite
+* @AfterEach - function that will run after each test
+* @RepeatedTest(n) - repeats test for n times
+* @ParameterizedTest and @MethodSource("argsProviderFunctionName") - parametrized tests
+* @Ignore - function that wont be run as test
+
 ## Usage
 
 ###General
 
-To use the unit test framework in your channel, place the framework files in the directory pkg:/source /testFramework/.
+To use the unit test framework in your channel, place the framework files in the directory pkg:/source/testFramework/.
 
 To run your unit tests, follow these instruction:
 
 1)	Create new folder “tests” under source directory of your project: “pkg:/source/tests”.
  * This will be the root folder for all your unit tests. In this folder you can also create subfolders for every test suite collection.
 
-2)	Create test suite files in “tests” folder or subfolders.
+2) Create test files in “tests” folder or subfolders.
 
-Create new .brs files for each test suite. The default prefix for test suite files is “Test\__”. You can use any prefix you want just don’t forget to specify it in the next step. In this new file define a function TestSuite__Main().  This function will return the test suite object. Create a new test suite object from BaseTestSuite:
+Create new .brs files for each test suite. The default prefix for test suite files is “Test\__”. You can use any prefix you want just don’t forget to specify it in the next step using Runner.SetTestFilePrefix function. 
+In this new file define a functions for each test case using @Test annotation. Detailed annotation descriptions you could find in Annotations section of this document.
 
-    this = BaseTestSuite()
+    ' @Test
+    function TestCase__Main_CheckDataCount() as String
+        return m.assertArrayCount(m.mainData, 15)
+    end function
+    
+    ' @Test
+    function Test_CheckDataCountSecondTime() as String
+        return m.assertArrayCount(m.mainData, 15)
+    end function
 
-then set its name
+***Optional***: Specify SetUp function for your test suite to do any actions before a tests from the suite will be executed:
 
-    this.Name = "MainTestSuite"
-
-***Optional***: Specify SetUp function for your TestSuite to do any actions before a tests from the suite will be executed:
-
-    this.SetUp = MainTestSuite__SetUp
-
-where MainTestSuite\__SetUp is function with your custom actions:
-
-    Sub MainTestSuite__SetUp()
+    ' @BeforeAll
+    sub MainTestSuite__SetUp()
         ' Target testing object. To avoid the object creation in each test
         ' we create instance of target object here and use it in tests as m.targetTestObject.
         m.mainData  = GetApiArray()
-    End Sub
+    end sub
 
-***Optional***: Specify TearDown function for your TestSuite to do any actions after a tests from the suite has been executed:
+***Optional***: Specify TearDown function for your test suite to do any actions after a tests from the suite has been executed:
 
-    this.TearDown = MainTestSuite__TearDown
-
-where MainTestSuite\__TearDown is function with your custom actions:
-
-    Sub MainTestSuite__TearDown()
+    ' @AfterAll
+    sub MainTestSuite__TearDown()
         ' Remove all the test data
         m.Delete("mainData")
-    End Sub
+    end sub
 
-Then add test cases:
+***Optional***: You could specify SetUp and TearDown functions for each test case using @BeforeEach and @AfterEach annotations:
 
-    this.addTest("CheckDataCount",TestCase\__Main_CheckDataCount).
-
-TestCase\__Main_CheckDataCount is a test function.
-
-    Function TestCase__Main_CheckDataCount() as String
-        return m.assertArrayCount(m.mainData, 15)
-    End Function
-
-You could specify SetUp and TearDown functions for each TestCase passing a function names to *addTest* function as additional parameters:
-
-    this.addTest("CheckDataCount", TestCase__Main_CheckDataCount, TestCase__Main_CheckDataCount_Setup, TestCase__Main_CheckDataCount_TearDown)
+    ' @BeforeEach
+    sub TestCase__SetUp()
+        m.testObject = {}
+    end sub
+    
+    ' @AfterEach
+    sub TestCase__TearDown()
+        m.someStorage.Append(m.testObject)
+    end sub
 
 You could print some performance data from your test cases using StorePerformanceData function as shown below:
 
-    Function TestCase__Main_CheckDataCount() as String
+    ' @Test
+    function TestCase__Main_CheckDataCount() as String
         ' do some calculations
         memoryUsage = GetMemoryUsage()
         m.StorePerformanceData("memory usage", memoryUsage)
 
         return m.assertArrayCount(m.mainData, 15)
-    End Function
+    end function
 
 3)	Run all your tests.
 
 To run your tests:
 * Create instance of TestRunner object (Runner = TestRunner()) and call it’s method Run (Runner.Run()). Embrace this code with such if statement – “args.RunTests = "true" and type(TestRunner) = "Function"”.
-* Define all test suite functions using SetFunctions method (Runner.SetFunctions([SuiteFunction1, SuiteFunction2])).
+* Define all functions using SetFunctions method (Runner.SetFunctions([TestCase__Main_CheckDataCount, Test_CheckDataCountSecondTime])).
 * If needed set TestRunner’s properties by calling it's setter methods before calling Run method.
+* If you want to add selective tests run option you could add SetIncludeFilter and SetExcludeFilter functions execution.
 * Deploy your channel to the device
 * POST the following command to the device via ECP:
 http://{Roku_box_IP_address}:8060/launch/dev?RunTests=true
@@ -196,17 +215,37 @@ telnet {Roku box IP address} 8085.
         Runner = TestRunner()
     
         Runner.SetFunctions([
-            TestSuite
+            TestCase__Main_CheckDataCount
+            Test_CheckDataCountSecondTime
+            MainTestSuite__SetUp
+            MainTestSuite__TearDown
+            TestCase__SetUp
+            TestCase__TearDown
         ])
+  
+        if args.IncludeFilter <> invalid
+            Runner.SetIncludeFilter(args.IncludeFilter)
+        end if
+  
+        if args.ExcludeFilter <> invalid
+            Runner.SetExcludeFilter(args.ExcludeFilter)
+        end if
   
         Runner.Logger.SetVerbosity(3)
         Runner.Logger.SetEcho(false)
         Runner.Logger.SetJUnit(false)
         Runner.SetFailFast(true)
         
-        Runner.RUN()
+        Runner.Run()
     end if
 
+###Filtering
+To set Include and Exclude filters use SetIncludeFilter and SetExcludeFilter functions. Each function accepts coma-separated names of test cases or array object of strings with test cases names.
+If you specify include filter with test case names than ONLY test cases from this list will be executed. Rest of test cases will be skipped.
+If you specify exclude filter with test case names than ALL test cases from this filter wont be executed. Exclude filter has higher priority and if you specify some test case in both filters than this test case will be excluded from run.
+Include and exclude filters works for @Test, @RepeatedTest and @ParameterizedTest only.
+
+###Logging
 To set verbosity level call Runner.logger.SetVerbosity(level). There are four verbosity levels in this framework:
 * “0” – basic level
 * “1” – normal level
@@ -245,15 +284,16 @@ If you want to test RSG nodes you should:
 
 2)	Create test suite files in "tests" folder or subfolders.
 
-Create new .xml file for each node you want to test. This .xml file should be a node and it must extend the node you want to test. The default prefix for test nodes is "Test\__". You can use any prefix you want just don’t forget to specify it. File name must match node name. For each node you may create as many test suites as you wish. Details on how to create test suites you can find in the previous section. The only difference is that every test suite should have following prefix: TEST\_FILE\_PREFIX + NODE\_NAME + "\__" + TEST\_SUITE\_NAME, where default TEST\_FILE\_PREFIX is "Test\__", NODE\_NAME may be "MyNode" and TEST\_SUITE\_NAME can be "TestSuite1". So the name of a test suite file may look like this: "Test\__MyNode\__TestSuite1". 
-Create additional Init.brs file with Init functions and define all test suites from previous files using SetFunctions method: 
+Create new .xml file for each node you want to test. This .xml file should be a node and it must extend the node you want to test but not the main scene node. The default prefix for test nodes is "Test\__". You can use any prefix you want just don’t forget to specify it using Runner.SetTestFilePrefix function. File name must match node name. For each node you may create as many test suites as you wish. Details on how to create test suites you can find in the previous section. The only difference is that every test suite should have following prefix: TEST\_FILE\_PREFIX + NODE\_NAME + "\__" + TEST\_SUITE\_NAME, where default TEST\_FILE\_PREFIX is "Test\__", NODE\_NAME may be "MyNode" and TEST\_SUITE\_NAME can be "TestSuite1". So the name of a test suite file may look like this: "Test\__MyNode\__TestSuite1". 
+Create additional Init.brs file with Init functions and define all functions from previous files using SetFunctions method: 
 
     sub init()
         Runner = TestRunner()
     
         Runner.SetFunctions([
-            TestSuite__MyNode__TestSuite1
-            TestSuite__MyNode__TestSuite2
+            RSG_Test1_FromSuite1
+            RSG_Test2_FromSuite1
+            RSG_Test1_FromSuite2
         ])
     end sub
 
@@ -280,6 +320,7 @@ In every test node (.xml file) you should:
 Note that if you want to test RSG nodes, you must run tests only after screen is shown. If you had previously set up test runner, move it below screen showing statement.
 
     m.screen.show()
+    
     if runUnitTests
 	    runner = TestRunner()
 	    runner.run()
@@ -287,7 +328,7 @@ Note that if you want to test RSG nodes, you must run tests only after screen is
 
 ### Annotations
 
-Alternatively you could use the following annotations to specify your test cases and setup/teardown functions.
+You could use the following annotations to specify your test cases and setup/teardown functions.
 
 **' @Test** - A test case function.
 
@@ -347,101 +388,70 @@ Here is an example test suite. For more examples please check a 'samples' folder
 '* All Rights Reserved
 '*****************************************************************
 
-' Functions in this file:
-'
-'     TestSuite__Main
-'     MainTestSuite__SetUp
-'     MainTestSuite__TearDown
-'     TestCase__Main_CheckDataCount
-'     TestCase__Main_CheckItemAttributes
-'     TestCase__Main_CheckStreamFormatType
-'     TestCase__Main_TestAddPrefixFunction__Failed
-'     TestCase__Main_TestAddPrefixFunction__Passed
-
-'----------------------------------------------------------------
-' Main setup function.
-'
-' @return A configured TestSuite object.
-'----------------------------------------------------------------
-Function TestSuite__Main() as Object
-
-    ' Inherite your test suite from BaseTestSuite
-    this = BaseTestSuite()
-
-    ' Test suite name for log statistics
-    this.Name = "MainTestSuite"
-
-    this.SetUp = MainTestSuite__SetUp
-    this.TearDown = MainTestSuite__TearDown
-
-    ' Add tests to suite's tests collection
-    this.addTest("CheckDataCount", TestCase__Main_CheckDataCount)
-    this.addTest("CheckItemAttributes", TestCase__Main_CheckItemAttributes)
-    this.addTest("CheckStreamFormatType", TestCase__Main_CheckStreamFormatType)
-    this.addTest("TestAddPrefixFunction__Failed", TestCase__Main_TestAddPrefixFunction__Failed)
-    this.addTest("TestAddPrefixFunction__Passed", TestCase__Main_TestAddPrefixFunction__Passed)
-
-    return this
-End Function
-
 '----------------------------------------------------------------
 ' This function called immediately before running tests of current suite.
 ' This function called to prepare all data for testing.
 '----------------------------------------------------------------
-Sub MainTestSuite__SetUp()
+' @BeforeAll
+sub MainTestSuite__SetUp()
     ' Target testing object. To avoid the object creation in each test
     ' we create instance of target object here and use it in tests as m.targetTestObject.
     m.mainData  = GetApiArray()
-End Sub
+end sub
 
 '----------------------------------------------------------------
 ' This function called immediately after running tests of current suite.
 ' This function called to clean or remove all data for testing.
 '----------------------------------------------------------------
-Sub MainTestSuite__TearDown()
+' @AfterAll
+sub MainTestSuite__TearDown()
     ' Remove all the test data
     m.Delete("mainData")
-End Sub
+end sub
 
 '----------------------------------------------------------------
 ' Check if data has an expected amount of items
 '
 ' @return An empty string if test is success or error message if not.
 '----------------------------------------------------------------
-Function TestCase__Main_CheckDataCount() as String
+' @Test
+function TestCase__Main_CheckDataCount() as String
     return m.assertArrayCount(m.mainData, 15)
-End Function
+end function
 
 '----------------------------------------------------------------
 ' Check if first item has mandatory attributes
 '
 ' @return An empty string if test is success or error message if not.
 '----------------------------------------------------------------
-Function TestCase__Main_CheckItemAttributes() as String
+' @Test 
+function TestCase__Main_CheckItemAttributes() as String
     firstItem = m.mainData[0]
 
     mandatoryAttributes = ["url", "title", "hdposterurl"]
 
     return m.AssertAAHasKeys(firstItem, mandatoryAttributes)
-End Function
+end function
 
 '----------------------------------------------------------------
 ' Check if stream format of the item is expected
 '
 ' @return An empty string if test is success or error message if not.
 '----------------------------------------------------------------
-Function TestCase__Main_CheckStreamFormatType() as String
+' @Test
+function TestCase__Main_CheckStreamFormatType() as String
     firstItem = m.mainData[0]
 
     return m.assertEqual(firstItem.streamFormat, "mp4")
-End Function
+end function
 
 '----------------------------------------------------------------
 ' Generates invalid input object and pass it to function.
 '
 ' @return An empty string if test is success or error message if not.
 '----------------------------------------------------------------
-Function TestCase__Main_TestAddPrefixFunction__Failed() as String
+' @Test
+function TestCase__Main_TestAddPrefixFunction__Failed() as String
     'Create scheme for item generator
     scheme = {
         key1  : "integer"
@@ -455,14 +465,15 @@ Function TestCase__Main_TestAddPrefixFunction__Failed() as String
     result = AddPrefixToAAItems(inputObject)
 
     return m.assertNotInvalid(result, "Input data is invalid. All values should be strings.")
-End Function
+end function
 
 '----------------------------------------------------------------
 ' Generates valid input object and pass it to function.
 '
 ' @return An empty string if test is success or error message if not.
 '----------------------------------------------------------------
-Function TestCase__Main_TestAddPrefixFunction__Passed() as string
+' @Test
+function TestCase__Main_TestAddPrefixFunction__Passed() as string
     'Create scheme for item generator
     scheme = {
         key1  : "string"
@@ -476,8 +487,34 @@ Function TestCase__Main_TestAddPrefixFunction__Passed() as string
     result = AddPrefixToAAItems(inputObject)
 
     return m.assertNotInvalid(result, "Input data is invalid. All values should be strings.")
-End Function```
+end function
 
+function stringProvider()
+    return ["foo", "bar", 1, 0, {}]
+end function
+
+'----------------------------------------------------------------
+' Validate that input parameters are not invalid.
+'
+' @return An empty string if test is success or error message if not.
+'----------------------------------------------------------------
+' @ParameterizedTest
+' @MethodSource("stringProvider")
+sub testWithSimpleMethodSource(argument = invalid as Dynamic)
+    UTF_assertNotInvalid(argument)
+end sub
+
+'----------------------------------------------------------------
+' Create row list 3 times and check it.
+'
+' @return An empty string if test is success or error message if not.
+'----------------------------------------------------------------
+' @RepeatedTest(3)
+sub NewApproach_CreateRowlistRepeatTest()
+    rowList = CreateObject("roSGNode", "RowList")
+    UTF_assertNotInvalid(rowlist.id)
+end sub
+```
 
 ###Test node example
 

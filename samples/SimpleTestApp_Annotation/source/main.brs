@@ -8,7 +8,8 @@ sub RunUserInterface(args)
         screen: screen
     }
     screen.show()
-    if true or args.RunTests = "true" and Type(TestRunner) = "Function" then
+    
+    if args.RunTests = "true" and Type(TestRunner) = "Function" then
         Runner = TestRunner()
 
         Runner.SetFunctions([
@@ -203,6 +204,7 @@ sub RunUserInterface(args)
             Test_UTF_assertNotEmpty_negative_invalid_items_parametrized
             Test_UTF_assertNotEmpty_negative_invalid_items_with_message_parametrized
         ])
+        
         Runner.Logger.SetVerbosity(3)
         Runner.Logger.SetEcho(false)
         Runner.Logger.SetJUnit(false)

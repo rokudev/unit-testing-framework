@@ -1,5 +1,5 @@
 function TestSuite__Hud__SampleRSGTestSuite2() as Object
-    ' Inherite your test suite from BaseTestSuite
+    ' Inherit your test suite from BaseTestSuite
     this = BaseTestSuite()
     
     ' Test suite name for log statistics

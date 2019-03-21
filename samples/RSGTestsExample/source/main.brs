@@ -13,7 +13,7 @@
     m.screen = CreateObject("roSGScreen")
     m.scene = m.screen.CreateScene("BaseScene")
     m.port = CreateObject("roMessagePort")
-    'getting acess to global node
+    'getting access to global node
     m.global = m.screen.getGlobalNode()
 
     'Set the roMessagePort to be used for all events from the screen.

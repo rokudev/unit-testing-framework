@@ -1,5 +1,5 @@
 function TestSuite__CustomVideoNode__SampleRSGTestSuite() as Object
-    ' Inherite your test suite from BaseTestSuite
+    ' Inherit your test suite from BaseTestSuite
     this = BaseTestSuite()
     
     ' Test suite name for log statistics
