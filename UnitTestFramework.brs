@@ -2,8 +2,8 @@
 '* Roku Unit Testing Framework
 '* Automating test suites for Roku channels.
 '*
-'* Build Version: 2.0.1
-'* Build Date: 01/24/2019
+'* Build Version: 2.1.0
+'* Build Date: 03/21/2019
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
@@ -90,28 +90,43 @@ end function
 ' Add a test to a suite's test cases array.
 
 ' @param name (string) A test name.
-' @param func (string) A test function name.
+' @param func (object) A pointer to test function.
+' @param setup (object) A pointer to setup function.
+' @param teardown (object) A pointer to teardown function.
+' @param arg (dynamic) A test function arguments.
+' @param hasArgs (boolean) True if test function has parameters.
+' @param skip (boolean) Skip test run.
 ' ----------------------------------------------------------------
-sub BTS__AddTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object, arg = invalid as Dynamic, hasArgs = false as Boolean)
-    m.testCases.Push(m.createTest(name, func, setup, teardown, arg, hasArgs))
+sub BTS__AddTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object, arg = invalid as Dynamic, hasArgs = false as Boolean, skip = false as Boolean)
+    m.testCases.Push(m.createTest(name, func, setup, teardown, arg, hasArgs, skip))
 end sub
 
 ' ----------------------------------------------------------------
 ' Create a test object.
 
 ' @param name (string) A test name.
-' @param func (string) A test function name.
+' @param func (object) A pointer to test function.
+' @param setup (object) A pointer to setup function.
+' @param teardown (object) A pointer to teardown function.
+' @param arg (dynamic) A test function arguments.
+' @param hasArgs (boolean) True if test function has parameters.
+' @param skip (boolean) Skip test run.
+' 
+' @return TestCase object.
 ' ----------------------------------------------------------------
-function BTS__CreateTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object, arg = invalid as Dynamic, hasArgs = false as Boolean) as Object
+function BTS__CreateTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object, arg = invalid as Dynamic, hasArgs = false as Boolean, skip = false as Boolean) as Object
     return {
         Name: name
         Func: func
         SetUp: setup
         TearDown: teardown
-	perfData: {}
+	    
+	    perfData: {}
 
         hasArguments: hasArgs
         arg: arg
+        
+        skip: skip
     }
 end function
 
@@ -248,7 +263,7 @@ end function
 ' @return An error message.
 ' ----------------------------------------------------------------
 function BTS__AssertInvalid(value as Dynamic, msg = "" as String) as String
-    if value <> invalid
+    if TF_Utils__IsValid(value)
         if msg = ""
             expr_as_string = TF_Utils__AsString(value)
             msg = expr_as_string + " <> Invalid"
@@ -268,8 +283,9 @@ end function
 ' @return An error message.
 ' ----------------------------------------------------------------
 function BTS__AssertNotInvalid(value as Dynamic, msg = "" as String) as String
-    if value = invalid
+    if not TF_Utils__IsValid(value)
         if msg = ""
+            if LCase(Type(value)) = "<uninitialized>" then value = invalid
             expr_as_string = TF_Utils__AsString(value)
             msg = expr_as_string + " = Invalid"
         end if
@@ -1159,7 +1175,7 @@ end function
 
 ' @return A statistic object for test.
 ' ----------------------------------------------------------------
-function Logger__CreateTestStatistic(name as String, result = "Success" as String, time = 0 as Integer, errorCode = 0 as Integer, errorMessage = "" as String) as Object
+function Logger__CreateTestStatistic(name as String, result = "Success" as String, time = 0 as Integer, errorCode = 0 as Integer, errorMessage = "" as String, isInit = false as Boolean) as Object
     statTestItem = {
         Name: name
         Result: result
@@ -1171,7 +1187,7 @@ function Logger__CreateTestStatistic(name as String, result = "Success" as Strin
         }
     }
 
-    if m.echoEnabled
+    if m.echoEnabled and not isInit
         if m.verbosity = m.verbosityLevel.verbose
             m.PrintTestStart(name)
         end if
@@ -1488,16 +1504,20 @@ function TestRunner() as Object
     this.SetTestsDirectory = TestRunner__SetTestsDirectory
     this.SetTestFilePrefix = TestRunner__SetTestFilePrefix
     this.SetTestSuitePrefix = TestRunner__SetTestSuitePrefix
-    this.SetTestSuiteName = TestRunner__SetTestSuiteName
-    this.SetTestCaseName = TestRunner__SetTestCaseName
+    this.SetTestSuiteName = TestRunner__SetTestSuiteName ' Obsolete, will be removed in next versions
+    this.SetTestCaseName = TestRunner__SetTestCaseName ' Obsolete, will be removed in next versions
     this.SetFailFast = TestRunner__SetFailFast
+    this.SetFunctions = TestRunner__SetFunctions
+    this.SetIncludeFilter = TestRunner__SetIncludeFilter
+    this.SetExcludeFilter = TestRunner__SetExcludeFilter
 
     ' Internal functions
     this.GetTestFilesList = TestRunner__GetTestFilesList
     this.GetTestSuitesList = TestRunner__GetTestSuitesList
     this.GetTestNodesList = TestRunner__GetTestNodesList
     this.GetTestSuiteNamesList = TestRunner__GetTestSuiteNamesList
-    this.SetFunctions = TestRunner__SetFunctions
+    this.GetIncludeFilter = TestRunner__GetIncludeFilter
+    this.GetExcludeFilter = TestRunner__GetExcludeFilter
 
     return this
 end function
@@ -1536,12 +1556,16 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
         end if
 
         suiteStatObj = m.Logger.CreateSuiteStatistic(testSuite.Name)
-        testStatObj = m.Logger.CreateTestStatistic("")
+        ' Initiate empty test statistics object to print results if no tests was run
+        testStatObj = m.Logger.CreateTestStatistic("", "Success", 0, 0, "", true)
         for each testCase in testCases
             ' clear all existing errors
             globalErrorsList.clear()
+            
             if m.testCaseName = "" or (m.testCaseName <> "" and LCase(testCase.Name) = LCase(m.testCaseName))
-                if TF_Utils__IsFunction(testCase.SetUp)
+                skipTest = TF_Utils__AsBoolean(testCase.skip)
+                
+                if TF_Utils__IsFunction(testCase.SetUp) and not skipTest
                     m.Logger.PrintTestSetUp(testCase.Name)
                     if IS_NEW_APPROACH then
                         env.functionToCall = testCase.SetUp
@@ -1553,27 +1577,32 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
 
                 testTimer = CreateObject("roTimespan")
                 testStatObj = m.Logger.CreateTestStatistic(testCase.Name)
-                testSuite.testInstance = testCase
-                testSuite.testCase = testCase.Func
-
-                runResult = ""
-                if IS_NEW_APPROACH then
-                    env.functionToCall = testCase.Func
-                    
-                    if GetInterface(env.functionToCall, "ifFunction") <> invalid
-                        if testCase.hasArguments then
-                            env.functionToCall(testCase.arg)
+                
+                if skipTest
+                    runResult = m.SKIP_TEST_MESSAGE_PREFIX + "Test was skipped according to specified filters"
+                else
+                    testSuite.testInstance = testCase
+                    testSuite.testCase = testCase.Func
+    
+                    runResult = ""
+                    if IS_NEW_APPROACH then
+                        env.functionToCall = testCase.Func
+                        
+                        if GetInterface(env.functionToCall, "ifFunction") <> invalid
+                            if testCase.hasArguments then
+                                env.functionToCall(testCase.arg)
+                            else
+                                env.functionToCall()
+                            end if
                         else
-                            env.functionToCall()
+                            UTF_fail("Failed to execute test """ + testCase.Name + """ function pointer not found")
                         end if
                     else
-                        UTF_fail("Failed to execute test """ + testCase.Name + """ function pointer not found")
+                        runResult = testSuite.testCase()
                     end if
-                else
-                    runResult = testSuite.testCase()
                 end if
 
-                if TF_Utils__IsFunction(testCase.TearDown)
+                if TF_Utils__IsFunction(testCase.TearDown) and not skipTest
                     m.Logger.PrintTestTearDown(testCase.Name)
                     if IS_NEW_APPROACH then
                         env.functionToCall = testCase.TearDown
@@ -1682,7 +1711,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
             if testNode <> invalid
                 testSuiteNamesList = m.GetTestSuiteNamesList(testNodeName)
                 if CreateObject("roSGScreen").CreateScene(testNodeName) <> invalid
-                    ? "WARNING: Test cases cannot be runned in main scene."
+                    ? "WARNING: Test cases cannot be run in main scene."
                     for each testSuiteName in testSuiteNamesList
                         suiteStatObj = m.Logger.CreateSuiteStatistic(testSuiteName)
                         suiteStatObj.fail = 1
@@ -1690,7 +1719,8 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as Object, te
                         m.Logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
                     end for
                 else
-                    tmp = testNode.callFunc("TestFramework__RunNodeTests", [totalStatObj, testSuiteNamesList])
+                    params = [m, totalStatObj, testSuiteNamesList, m.GetIncludeFilter(), m.GetExcludeFilter()]
+                    tmp = testNode.callFunc("TestFramework__RunNodeTests", params)
                     if tmp <> invalid then
                         totalStatObj = tmp
                     end if
@@ -1719,45 +1749,35 @@ end function
 ' Set testsDirectory property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestsDirectory(testsDirectory as String)
-    if testsDirectory <> invalid
-        m.testsDirectory = testsDirectory
-    end if
+    m.testsDirectory = testsDirectory
 end sub
 
 ' ----------------------------------------------------------------
-' Set setTestFilePrefix property.
+' Set testFilePrefix property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestFilePrefix(testFilePrefix as String)
-    if testFilePrefix <> invalid
-        m.testFilePrefix = setTestFilePrefix
-    end if
+    m.testFilePrefix = testFilePrefix
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testSuitePrefix property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestSuitePrefix(testSuitePrefix as String)
-    if testSuitePrefix <> invalid
-        m.testSuitePrefix = testSuitePrefix
-    end if
+    m.testSuitePrefix = testSuitePrefix
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testSuiteName property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestSuiteName(testSuiteName as String)
-    if testSuiteName <> invalid
-        m.testSuiteName = testSuiteName
-    end if
+    m.testSuiteName = testSuiteName
 end sub
 
 ' ----------------------------------------------------------------
 ' Set testCaseName property.
 ' ----------------------------------------------------------------
 sub TestRunner__SetTestCaseName(testCaseName as String)
-    if testCaseName <> invalid
-        m.testCaseName = testCaseName
-    end if
+    m.testCaseName = testCaseName
 end sub
 
 ' ----------------------------------------------------------------
@@ -1850,7 +1870,7 @@ function ScanFileForNewTests(souceCode, filePath)
     foundAnyTest = false
     testSuite = BaseTestSuite()
 
-    allowedAnnotationsRegex = CreateObject("roRegex", "^'\s*@(test|beforeall|beforeeach|afterall|aftereach|repeatedtest|parameterizedtest|methodsource)\s*|\n", "i")
+    allowedAnnotationsRegex = CreateObject("roRegex", "^'\s*@(test|beforeall|beforeeach|afterall|aftereach|repeatedtest|parameterizedtest|methodsource|ignore)\s*|\n", "i")
     voidFunctionRegex = CreateObject("roRegex", "^(function|sub)\s([a-z0-9A-Z_]*)\(\)", "i")
     anyArgsFunctionRegex = CreateObject("roRegex", "^(function|sub)\s([a-z0-9A-Z_]*)\(", "i")
 
@@ -1875,8 +1895,9 @@ function ScanFileForNewTests(souceCode, filePath)
         executedParametrizedAdding: false
 
         test: sub()
+            skipTest = m.doSkipTest(m.functionName)
             funcPointer = m.getFunctionPointer(m.functionName)
-            m.tests.push({ name: m.functionName, pointer: funcPointer })
+            m.tests.push({ name: m.functionName, pointer: funcPointer, skip: skipTest })
         end sub
 
         repeatedtest: sub()
@@ -1889,8 +1910,9 @@ function ScanFileForNewTests(souceCode, filePath)
                     numberOfLoops = TF_Utils__AsInteger(numberOfLoops)
                     funcPointer = m.getFunctionPointer(m.functionName)
                     for index = 1 to numberOfLoops
+                        skipTest = m.doSkipTest(m.functionName)
                         text = " " + index.tostr() + " of " + numberOfLoops.tostr()
-                        m.tests.push({ name: m.functionName + text, pointer: funcPointer })
+                        m.tests.push({ name: m.functionName + text, pointer: funcPointer, skip: skipTest })
                     end for
                 end if
             else
@@ -1907,38 +1929,42 @@ function ScanFileForNewTests(souceCode, filePath)
         end sub
 
         processParameterizedTests: sub()
-            if not m.executedParametrizedAdding and m.annotations.methodSource <> invalid and m.annotations.parameterizedTest <> invalid then
-                methodAnottation = m.annotations.methodSource.line
-
-                allowedAnnotationsRegex = CreateObject("roRegex", "^'\s*@(methodsource)\(" + Chr(34) + "([A-Za-z0-9_]*)" + Chr(34) + "\)", "i")
-
-                if allowedAnnotationsRegex.IsMatch(methodAnottation)
-                    groups = allowedAnnotationsRegex.Match(methodAnottation)
-                    providerFunction = groups[2]
-
-                    providerFunctionPointer = m.getFunctionPointer(providerFunction)
-
-                    if providerFunctionPointer <> invalid then
-                        funcPointer = m.getFunctionPointer(m.functionName)
-
-                        args = providerFunctionPointer()
-                        
-                        index = 1
-                        for each arg in args
-                            text = " " + index.tostr() + " of " + args.count().tostr()
-                            m.tests.push({ name: m.functionName + text, pointer: funcPointer, arg: arg, hasArgs: true })
-                            index++
-                        end for
-                    else
-                        ? "WARNING: Cannot find function [" providerFunction "]"
+            ' add test if it was not added already
+            if not m.executedParametrizedAdding
+                if m.annotations.methodSource <> invalid and m.annotations.parameterizedTest <> invalid then
+                    methodAnottation = m.annotations.methodSource.line
+    
+                    allowedAnnotationsRegex = CreateObject("roRegex", "^'\s*@(methodsource)\(" + Chr(34) + "([A-Za-z0-9_]*)" + Chr(34) + "\)", "i")
+    
+                    if allowedAnnotationsRegex.IsMatch(methodAnottation)
+                        groups = allowedAnnotationsRegex.Match(methodAnottation)
+                        providerFunction = groups[2]
+    
+                        providerFunctionPointer = m.getFunctionPointer(providerFunction)
+    
+                        if providerFunctionPointer <> invalid then
+                            funcPointer = m.getFunctionPointer(m.functionName)
+    
+                            args = providerFunctionPointer()
+                            
+                            index = 1
+                            for each arg in args
+                                skipTest = m.doSkipTest(m.functionName)
+                                text = " " + index.tostr() + " of " + args.count().tostr()
+                                m.tests.push({ name: m.functionName + text, pointer: funcPointer, arg: arg, hasArgs: true, skip: skipTest })
+                                index++
+                            end for
+                        else
+                            ? "WARNING: Cannot find function [" providerFunction "]"
+                        end if
                     end if
+                else
+                    ? "WARNING: Wrong format of  @ParameterizedTest \n @MethodSource(providerFunctionName)"
+                    ? "m.executedParametrizedAdding = "m.executedParametrizedAdding
+                    ? "m.annotations.methodSource = "m.annotations.methodSource
+                    ? "m.annotations.parameterizedTest = "m.annotations.parameterizedTest
+                    ? ""
                 end if
-            else
-                ? "WARNING: Wrong format of  @ParameterizedTest \n @MethodSource(providerFunctionName)"
-                ? "m.executedParametrizedAdding = "m.executedParametrizedAdding
-                ? "m.annotations.methodSource = "m.annotations.methodSource
-                ? "m.annotations.parameterizedTest = "m.annotations.parameterizedTest
-                ? ""
             end if
         end sub
 
@@ -1958,6 +1984,46 @@ function ScanFileForNewTests(souceCode, filePath)
             m.AfterAllFunc = m.getFunctionPointer(m.functionName)
         end sub
 
+        ignore: sub()
+            funcPointer = m.getFunctionPointer(m.functionName)
+            m.tests.push({ name: m.functionName, pointer: funcPointer, skip: true })
+        end sub
+
+        doSkipTest: function(name as String)
+            includeFilter = []
+            excludeFilter = []
+            
+            gthis = GetGlobalAA()
+            if gthis.IncludeFilter <> invalid then includeFilter.append(gthis.IncludeFilter)
+            if gthis.ExcludeFilter <> invalid then excludeFilter.append(gthis.ExcludeFilter)
+            
+            ' apply test filters
+            skipTest = false
+            ' skip test if it is found in exclude filter
+            for each testName in excludeFilter
+                if TF_Utils__IsNotEmptyString(testName) and LCase(testName.Trim()) = LCase(name.Trim())
+                    skipTest = true
+                    exit for
+                end if
+            end for
+            
+            ' skip test if it is not found in include filter
+            if not skipTest and includeFilter.Count() > 0
+                foundInIncludeFilter = false
+
+                for each testName in includeFilter
+                    if TF_Utils__IsNotEmptyString(testName) and LCase(testName) = LCase(name)
+                        foundInIncludeFilter = true
+                        exit for
+                    end if
+                end for
+                
+                skipTest = not foundInIncludeFilter
+            end if
+            
+            return skipTest
+        end function
+
         buildTests: sub()
             testSuite = m.testSuite
             testSuite.Name = m.filePath
@@ -1974,7 +2040,7 @@ function ScanFileForNewTests(souceCode, filePath)
                     hasArgs = true
                 end if
 
-                testSuite.addTest(test.name, test.pointer, m.beforeEachFunc, m.AfterEachFunc, arg, hasArgs)
+                testSuite.addTest(test.name, test.pointer, m.beforeEachFunc, m.AfterEachFunc, arg, hasArgs, test.skip)
             end for
         end sub
 
@@ -2023,9 +2089,9 @@ function ScanFileForNewTests(souceCode, filePath)
                             foundAnyTest = true
                         end if
                     else
-                        ' invalidating anottation 
-                        ' TODO print message here that we skipped anottation
-                        ? "WARNING: anottation "currentAnottations " isparametrized="isParametrized" skipped at line " index ":[" line "]"
+                        ' invalidating annotation 
+                        ' TODO print message here that we skipped annotation
+                        ? "WARNING: annotation " currentAnottations " isparametrized=" isParametrized " skipped at line " index ":[" line "]"
                         processors.annotations = {}
                         currentAnottations = []
                     end if
@@ -2045,7 +2111,7 @@ end function
 
 function TestFramework__getFunctionPointer(functionName as String) as Dynamic
     result = invalid
-'        Eval("result = " + functionName)
+
     gthis = GetGlobalAA()
     if gthis.FunctionsList <> invalid then
         for each value in gthis.FunctionsList
@@ -2072,6 +2138,58 @@ sub TestRunner__SetFunctions(listOfFunctions as Dynamic)
     end if
     gthis.FunctionsList.append(listOfFunctions)
 end sub
+
+sub TestRunner__SetIncludeFilter(listOfFunctions as Dynamic)
+    gthis = GetGlobalAA()
+
+    if gthis.IncludeFilter = invalid
+        gthis.IncludeFilter = []
+    end if
+
+    if TF_Utils__IsArray(listOfFunctions)
+        gthis.IncludeFilter.Append(listOfFunctions)
+    else if TF_Utils__IsNotEmptyString(listOfFunctions)
+        gthis.IncludeFilter.Append(listOfFunctions.Split(","))
+    else
+        ? "WARNING: Could not parse input parameters for Include Filter. Filter wont be applied."
+    end if
+end sub
+
+function TestRunner__GetIncludeFilter()
+    gthis = GetGlobalAA()
+
+    if gthis.IncludeFilter = invalid
+        gthis.IncludeFilter = []
+    end if
+    
+    return gthis.IncludeFilter
+end function
+
+sub TestRunner__SetExcludeFilter(listOfFunctions as Dynamic)
+    gthis = GetGlobalAA()
+
+    if gthis.ExcludeFilter = invalid
+        gthis.ExcludeFilter = []
+    end if
+    
+    if TF_Utils__IsArray(listOfFunctions)
+        gthis.ExcludeFilter.Append(listOfFunctions)
+    else if TF_Utils__IsNotEmptyString(listOfFunctions)
+        gthis.ExcludeFilter.Append(listOfFunctions.Split(","))
+    else
+        ? "WARNING: Could not parse input parameters for Exclude Filter. Filter wont be applied."
+    end if
+end sub
+
+function TestRunner__GetExcludeFilter()
+    gthis = GetGlobalAA()
+
+    if gthis.ExcludeFilter = invalid
+        gthis.ExcludeFilter = []
+    end if
+    
+    return gthis.ExcludeFilter
+end function
 
 ' ----------------------------------------------------------------
 ' Scans all test files for test suite function names for a given test node.
@@ -2190,10 +2308,22 @@ end function
 ' @return statistic object.
 ' ----------------------------------------------------------------
 function TestFramework__RunNodeTests(params as Object) as Object
-    statObj = params[0]
-    testSuiteNamesList = params[1]
+    this = params[0]
+    
+    statObj = params[1]
+    testSuiteNamesList = params[2]
 
     Runner = TestRunner()
+    
+    Runner.SetTestSuitePrefix(this.testSuitePrefix)
+    Runner.SetTestFilePrefix(this.testFilePrefix)
+    Runner.SetTestSuiteName(this.testSuiteName)
+    Runner.SetTestCaseName(this.testCaseName)
+    Runner.SetFailFast(this.failFast)
+    
+    Runner.SetIncludeFilter(params[3])
+    Runner.SetExcludeFilter(params[4])
+    
     return Runner.Run(statObj, testSuiteNamesList)
 end function
 function UTF_skip(msg = "")
@@ -2607,7 +2737,7 @@ function TF_Utils__FindElementIndexInArray(array as Object, value as Object, com
         for i = 0 to TF_Utils__AsArray(array).Count() - 1
             compareValue = array[i]
 
-            if compareAttribute <> invalid and TF_Utils__IsAssociativeArray(compareValue)
+            if compareAttribute <> invalid and TF_Utils__IsAssociativeArray(compareValue) and compareValue.DoesExist(compareAttribute)
                 compareValue = compareValue.LookupCI(compareAttribute)
             end if
 
@@ -2673,7 +2803,7 @@ function TF_Utils__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boole
         return TF_Utils__EqArray(value1, value2)
     else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
         return TF_Utils__EqAssocArray(value1, value2)
-    else if Type(box(value1)) = Type(box(value2))
+    else if Type(box(value1), 3) = Type(box(value2), 3)
         return value1 = value2
     else
         return false

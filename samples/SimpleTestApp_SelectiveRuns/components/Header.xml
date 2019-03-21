@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2017 Roku, Inc. All rights reserved. -->
+<!-- Roku Header File -->
+
+<component
+    name="Header"
+    extends="Group"
+    xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+    <interface>
+        <field type="node" id="ChannelTitle" />
+        <field type="node" id="CurrentlyPlaying"/>
+        <field type="node" id="ContentDescription"/>
+    </interface>
+    
+    <script type="text/brightscript" uri ="pkg:/components/header.brs"/>
+    
+    <children>
+        <Group
+            id="Header"
+            translation="[0,100]">
+            <TwitterLabel
+                id="ChannelTitle"
+                width="1920"
+                height="60"
+                color="0xFFFFFF"
+                text="Channel"
+                translation="[0,20]"
+                horizAlign="center">
+                <Font
+                    role="font"
+                    uri="pkg:/fonts/HelveticaNeueLTStd-Roman.otf"
+                    id="HelveticaNeueLTStd-Roman"
+                    size="40" />
+            </TwitterLabel>
+            <TwitterLabel
+                id="CurrentlyPlaying"
+                width="1250"
+                height="200"
+                color="0xFFFFFFFF"
+                numLines="2"
+                maxLines="2"
+                wrap="true"
+                text="Twitter for Roku"
+                translation="[350,80]"
+                horizAlign="center">
+                <Font
+                    role="font"
+                    uri="pkg:/fonts/HelveticaNeueLTStd-Bd.otf"
+                    id="HelveticaNeueLTStd-Bd"
+                    size="100" />
+            </TwitterLabel>
+            <TwitterLabel
+                id="ContentDescription"
+                width="1920"
+                height="60"
+                color="0xFFFFFF"
+                text="Watch Live!"
+                translation="[0,180]"
+                horizAlign="center">
+                <Font
+                    role="font"
+                    uri="pkg:/fonts/HelveticaNeueLTStd-Roman.otf"
+                    id="Helvetica-Roman"
+                    size="40" />
+            </TwitterLabel>
+        </Group>
+    </children>
+</component>

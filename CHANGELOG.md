@@ -1,5 +1,19 @@
 # **Roku Unit Testing Framework**
-> 01.24.2019
+> 03.21.2019
+
+## v.2.1.0
+
+### Features
+
+ * Add Initialization mode support to Logger
+ * Add an ability to choose a test in the Unit Tests
+ * Add @Ignore test annotation
+ * Running specific tests in the non-node mode
+ * Add new channel sample for Selective Test Runs
+
+### Bug Fixes
+
+ * AssertEqual was returning false on identical values for some Strings.
 
 ## v.2.0.1
 
