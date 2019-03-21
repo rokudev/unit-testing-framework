@@ -2796,18 +2796,21 @@ end function
 
 ' @return True if values are equal or False in other case.
 function TF_Utils__BaseComparator(value1 as Dynamic, value2 as Dynamic) as Boolean
-    value1Type = Type(value1)
-    value2Type = Type(value2)
-
-    if (value1Type = "roList" or value1Type = "roArray") and (value2Type = "roList" or value2Type = "roArray")
-        return TF_Utils__EqArray(value1, value2)
-    else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
-        return TF_Utils__EqAssocArray(value1, value2)
-    else if Type(box(value1), 3) = Type(box(value2), 3)
-        return value1 = value2
-    else
+    if (Type(Box(value1), 3) <> Type(Box(value2), 3))
         return false
     end if
+
+    valuesType = Type(Box(value1), 3)
+
+    if (valuesType = "roSGNode")
+        return value1.isSameNode(value2)
+    else if (valuesType = "roList" or valuesType = "roArray")
+        return TF_Utils__EqArray(value1, value2)
+    else if (valuesType = "roAssociativeArray")
+        return TF_Utils__EqAssocArray(value1, value2)
+    end if
+
+    return value1 = value2
 end function
 
 ' ----------------------------------------------------------------
