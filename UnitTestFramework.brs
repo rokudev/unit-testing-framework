@@ -2,8 +2,8 @@
 '* Roku Unit Testing Framework
 '* Automating test suites for Roku channels.
 '*
-'* Build Version: 2.1.0
-'* Build Date: 03/21/2019
+'* Build Version: 2.1.1
+'* Build Date: 05/06/2019
 '*
 '* Public Documentation is avaliable on GitHub:
 '* 		https://github.com/rokudev/unit-testing-framework
