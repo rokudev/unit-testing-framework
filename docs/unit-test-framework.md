@@ -133,7 +133,7 @@ For now we support
 
 ## Usage
 
-###General
+### General
 
 To use the unit test framework in your channel, place the framework files in the directory pkg:/source/testFramework/.
 
@@ -239,13 +239,13 @@ telnet {Roku box IP address} 8085.
         Runner.Run()
     end if
 
-###Filtering
+### Filtering
 To set Include and Exclude filters use SetIncludeFilter and SetExcludeFilter functions. Each function accepts coma-separated names of test cases or array object of strings with test cases names.
 If you specify include filter with test case names than ONLY test cases from this list will be executed. Rest of test cases will be skipped.
 If you specify exclude filter with test case names than ALL test cases from this filter wont be executed. Exclude filter has higher priority and if you specify some test case in both filters than this test case will be excluded from run.
 Include and exclude filters works for @Test, @RepeatedTest and @ParameterizedTest only.
 
-###Logging
+### Logging
 To set verbosity level call Runner.logger.SetVerbosity(level). There are four verbosity levels in this framework:
 * “0” – basic level
 * “1” – normal level
@@ -516,7 +516,7 @@ sub NewApproach_CreateRowlistRepeatTest()
 end sub
 ```
 
-###Test node example
+### Test node example
 
 Here is shown what a test node for "MyNode" may look like:
 
